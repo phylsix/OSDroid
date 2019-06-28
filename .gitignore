@@ -7,3 +7,5 @@ Logs
 __pycache__
 config/credential.yml
 config/config.yml
+
+!requirements.txt

@@ -1,0 +1,8 @@
+schedule
+yaml
+numpy
+pandas
+xgboost
+CMSMonitoring
+cx_Oracle
+cmstoolbox
