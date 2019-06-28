@@ -1,0 +1,9 @@
+Logs
+*.log
+*.txt
+*.sqlite
+*.json
+*.model
+__pycache__
+config/credential.yml
+config/config.yml

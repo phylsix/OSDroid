@@ -1,0 +1,18 @@
+.banner {
+  background-color: lightblue;
+  color: white;
+  padding: 8px 5px;
+}
+
+.body-content {
+  padding: 5px;
+}
+
+td.details-control {
+  background: url("./img/details_open.png") no-repeat center center;
+  cursor: pointer;
+}
+
+tr.shown td.details-control {
+  background: url("./img/details_close.png") no-repeat center center;
+}

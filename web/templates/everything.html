@@ -1,0 +1,28 @@
+{% extends "layout.html" %} {% block content %}
+
+<h3>all workflows [{{ count }}]</h3>
+
+<table id="wftable" class="display">
+  <thead>
+    <tr>
+      <th></th>
+      <th>Name</th>
+      <th>Good</th>
+      <th>ACDC</th>
+      <th>Resubmit</th>
+      <th>Timestamp</th>
+    </tr>
+  </thead>
+  <tfoot>
+    <tr>
+      <th></th>
+      <th>Name</th>
+      <th>Good</th>
+      <th>ACDC</th>
+      <th>Resubmit</th>
+      <th>Timestamp</th>
+    </tr>
+  </tfoot>
+</table>
+
+{% endblock %}

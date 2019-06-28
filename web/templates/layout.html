@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>workflowmonit</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{url_for('static', filename='site.css')}}"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.4.1.min.js"
+      integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+      crossorigin="anonymous"
+    ></script>
+    <script
+      type="text/javascript"
+      charset="utf8"
+      src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"
+    ></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  </head>
+  <body>
+    <div class="banner">
+      <h1>workflowmonit predictions</h1>
+
+      <div class="navbar">
+        <a href="{{ url_for('home') }}">Running</a> |
+        <a href="{{ url_for('archived') }}">Archived</a> |
+        <a href="{{ url_for('everything') }}">Everything</a>
+      </div>
+    </div>
+
+    <div class="body-content">
+      {% block content %} {% endblock %}
+      <hr />
+      <footer>
+        <p>&copy; 2019 W.Si for CMS CompOps T&I</p>
+      </footer>
+    </div>
+
+    <script type="text/javascript">
+      /* Format function for row details */
+      function format(d) {
+        return "<div id=row_" + d.id + "></div>";
+      }
+
+      $(document).ready(function() {
+        var table = $("#wftable").DataTable({
+          ajax: "{{url_for('static', filename=jsonname)}}",
+          columns: [
+            {
+              className: "details-control",
+              orderable: false,
+              data: null,
+              defaultContent: ""
+            },
+            { data: "name" },
+            { data: "good" },
+            { data: "acdc" },
+            { data: "resubmit" },
+            { data: "timestamp" }
+          ],
+          order: [[1, "asc"]]
+        });
+
+        // Add event listener for opening and closing details
+        $("#wftable tbody").on("click", "td.details-control", function() {
+          var tr = $(this).closest("tr");
+          var row = table.row(tr);
+
+          if (row.child.isShown()) {
+            // this row is already open - close it
+            row.child.hide();
+            tr.removeClass("shown");
+          } else {
+            // open this row
+            row.child(format(row.data())).show();
+
+            var rawdata = row.data()["history"];
+            var trace_good = {
+              type: "scatter",
+              mode: "lines",
+              name: "Good",
+              x: rawdata.map(x => x["timestamp"]),
+              y: rawdata.map(x => x["prediction"][0]),
+              line: { color: "#17BECF" }
+            };
+            var trace_acdc = {
+              type: "scatter",
+              mode: "lines",
+              name: "ACDC",
+              x: rawdata.map(x => x["timestamp"]),
+              y: rawdata.map(x => x["prediction"][1]),
+              line: { color: "#7F7F7F" }
+            };
+            var trace_resub = {
+              type: "scatter",
+              mode: "lines",
+              name: "Resubmit",
+              x: rawdata.map(x => x["timestamp"]),
+              y: rawdata.map(x => x["prediction"][2]),
+              line: { color: "#d62728" }
+            };
+
+            var data = [trace_good, trace_acdc, trace_resub];
+            var layout = { title: row.data()["name"] };
+
+            Plotly.newPlot("row_" + row.data()["id"], data, layout);
+
+            tr.addClass("shown");
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
