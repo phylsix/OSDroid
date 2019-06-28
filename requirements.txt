@@ -6,3 +6,4 @@ xgboost
 CMSMonitoring
 cx_Oracle
 cmstoolbox
+flask
