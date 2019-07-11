@@ -9,7 +9,7 @@ After environments set up and necessary configuration pieces added,
 ```bash
 ./startMonit.sh # this starts monitoring in the background
 cd web/
-./quickStart.sh # this starts Flask basic server on port 5000 (subject to change)
+./quickStart.sh # this starts Flask basic server on port 8020 (subject to change)
 ```
 
 ## configurations etc.
