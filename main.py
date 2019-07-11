@@ -7,7 +7,7 @@ import logging.config
 import time
 
 import yaml
-from monitutils import get_yamlconfig, get_workflow_from_db, save_json
+from monitutils import get_yamlconfig, save_json
 from workflowmonitexporter import buildDoc, prepareWorkflows, updateWorkflowStatusToDb, sendDoc
 from workflowalerts import alertWithEmail, errorEmailShooter
 from workflowprediction import makingPredictionsWithML
@@ -37,12 +37,11 @@ def main():
         os.makedirs(LOGDIR)
 
     cred = get_yamlconfig(CRED_FILE_PATH)
-    wfpacks = prepareWorkflows(CONFIG_FILE_PATH, test=False)
-
     recipients = get_yamlconfig(CONFIG_FILE_PATH).get('alert_recipients', [])
 
     try:
 
+        wfpacks = prepareWorkflows(CONFIG_FILE_PATH, test=False)
         totaldocs = []
         for pack in wfpacks:
             docs = buildDoc(pack, doconcurrent=True)

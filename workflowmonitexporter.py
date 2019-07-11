@@ -166,7 +166,12 @@ def prepareWorkflows(configpath, minfailurerate=0., test=False, batchsize=400):
 
     DB_QUERY_CMD = "SELECT NAME FROM CMS_UNIFIED_ADMIN.WORKFLOW WHERE WM_STATUS LIKE 'running%'"
 
-    _wkfs = get_workflow_from_db(configpath, DB_QUERY_CMD)
+    _wkfs = []
+    try:
+        _wkfs = get_workflow_from_db(configpath, DB_QUERY_CMD)
+    except Exception as e:
+        logger.error("Fail to get running workflows from UNIFIED DB!\nMsg: {}".format(str(e)))
+        raise
     msg = 'Number of workflows fetched from db:',len(_wkfs)
     logger.info(msg)
     if test: _wkfs = _wkfs[-10:]
