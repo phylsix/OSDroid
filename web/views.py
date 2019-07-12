@@ -6,6 +6,8 @@ from datetime import datetime
 from os.path import join, abspath, dirname
 
 DBPATH = join(dirname(abspath(__file__)), "../models/prediction_history.json")
+LABELDBPATH = join(dirname(abspath(__file__)), "../models/label_archives.json")
+
 TABLEDATAPATH = join(dirname(abspath(__file__)), "static/tabledata_{}.json")
 
 
@@ -52,6 +54,7 @@ def home():
 @app.route("/archived/")
 def archived():
     db = json.load(open(DBPATH))
+    labelsource = json.load(open(LABELDBPATH))
     wfupdated_ = db["updatedWorkflows"]
     wfall_ = list(db["workflowData"].keys())
     wfarchived_ = [w for w in wfall_ if w not in wfupdated_]
@@ -70,6 +73,8 @@ def archived():
             dict(timestamp=convert_time(e["timestamp"]), prediction=e["prediction"])
             for e in workflowdata_[wf]
         ]
+        tableentry['label'] = labelsource.get(wf, -1)
+        # if tableentry['label']!=-1: print(wf, labelsource[wf])
         tabledata["data"].append(tableentry)
     with open(TABLEDATAPATH.format("archived"), "w") as f:
         f.write(json.dumps(tabledata))

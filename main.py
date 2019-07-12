@@ -11,6 +11,7 @@ from monitutils import get_yamlconfig, save_json
 from workflowmonitexporter import buildDoc, prepareWorkflows, updateWorkflowStatusToDb, sendDoc
 from workflowalerts import alertWithEmail, errorEmailShooter
 from workflowprediction import makingPredictionsWithML
+from workflowlabelmaker import updateLabelArchives
 
 LOGDIR = join(dirname(abspath(__file__)), 'Logs')
 CRED_FILE_PATH = join(dirname(abspath(__file__)), 'config/credential.yml')
@@ -70,6 +71,8 @@ def main():
 
         # predictions
         makingPredictionsWithML(totaldocs)
+        # labeling
+        updateLabelArchives([wf for pack in wfpacks for wf in pack])
 
     except Exception as e:
         logger.exception(f"Exception encountered, sending emails to {str(recipients)}")
