@@ -16,6 +16,9 @@ multiple workflow name:
 import re
 import os
 import json
+import yaml
+import logging
+import logging.config
 from os.path import join, dirname, abspath
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -162,6 +165,10 @@ def updateLabelArchives(wfnames, dbpath=DBPATH):
 
 
 def test():
+
+    with open(LOGGING_CONFIG, 'r') as f:
+        config = yaml.safe_load(f.read())
+        logging.config.dictConfig(config)
 
     # get archived workflows from `/models/prediction_history.json`
     db = json.load(open('models/prediction_history.json'))
