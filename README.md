@@ -1,4 +1,4 @@
-workflowmonit
+OSDroid
 =============
 
 Predict running workflows' actions. Currently running at vocms0116.
