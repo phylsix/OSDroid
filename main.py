@@ -70,14 +70,52 @@ def main():
             logger.info('Number of updated workflows: {}'.format(len(docs)))
 
         # predictions
+        logger.info("Making predicions for {} workflows..".format(len(totaldocs)))
         makingPredictionsWithML(totaldocs)
+
         # labeling
-        updateLabelArchives([wf for pack in wfpacks for wf in pack])
+        _wfnames = [p[0].name for pack in wfpacks for p in pack]
+        logger.info("Passing {} workflows for label making..".format(len(_wfnames)))
+        updateLabelArchives(_wfnames)
 
     except Exception as e:
         logger.exception(f"Exception encountered, sending emails to {str(recipients)}")
         errorEmailShooter(str(e), recipients)
 
 
+def test():
+    with open(LOGGING_CONFIG, 'r') as f:
+        config = yaml.safe_load(f.read())
+        logging.config.dictConfig(config)
+
+    logger = logging.getLogger("testworkflowmonitLogger")
+
+    if not os.path.isdir(LOGDIR):
+        os.makedirs(LOGDIR)
+
+    cred = get_yamlconfig(CRED_FILE_PATH)
+    recipients = get_yamlconfig(CONFIG_FILE_PATH).get('alert_recipients', [])
+
+    try:
+
+        wfpacks = prepareWorkflows(CONFIG_FILE_PATH, test=True)
+        totaldocs = []
+        for pack in wfpacks:
+            docs = buildDoc(pack, doconcurrent=True)
+            totaldocs.extend(docs)
+            for doc in docs:
+                print(json.dumps(doc, indent=4))
+        # predictions
+        logger.info("Making predicions for {} workflows..".format(len(totaldocs)))
+        makingPredictionsWithML(totaldocs)
+        # labeling
+        _wfnames = [p[0].name for pack in wfpacks for p in pack]
+        logger.info("Passing {} workflows for label making..".format(len(_wfnames)))
+        updateLabelArchives(_wfnames)
+
+    except Exception as e:
+        logger.exception(f"Exception encountered, sending emails to {str(recipients)}")
+
+
 if __name__ == "__main__":
-    main()
+    test()

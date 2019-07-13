@@ -85,12 +85,12 @@ def get_workflowlist_from_db(config, queryCmd):
 
 def get_workflow_from_db(configPath, queryCmd):
     '''
-    get a list of :py:class:`WorkflowInfo` objects by parsing the oracle db
+    get a list of :py:class:`Workflow` objects by parsing the oracle db
     indicated in ``config.yml`` pointed by configpath.
 
     :param str configPath: path of config file
     :param str queryCmd: SQL query command
-    :returns: list of :py:class:`WorkflowInfo`
+    :returns: list of :py:class:`Workflow`
 
     :rtype: list
     '''

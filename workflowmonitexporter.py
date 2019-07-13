@@ -160,7 +160,8 @@ def prepareWorkflows(configpath, minfailurerate=0., test=False, batchsize=400):
     :param float minfailurerate: input to pack for jobs
     :param bool test: for debug
     "param int batchsize: number of workflows per batch
-    :returns: packed arguments for each workflows
+    :returns: list of list of (:py:class:`Workflow`, `minfailurerate`, `configpath`),
+     grouped per `batchsize`.
     :rtype: list
     """
 
@@ -168,7 +169,7 @@ def prepareWorkflows(configpath, minfailurerate=0., test=False, batchsize=400):
 
     _wkfs = []
     try:
-        _wkfs = get_workflow_from_db(configpath, DB_QUERY_CMD)
+        _wkfs = get_workflow_from_db(configpath, DB_QUERY_CMD) # list of `Workflow`
     except Exception as e:
         logger.error("Fail to get running workflows from UNIFIED DB!\nMsg: {}".format(str(e)))
         raise

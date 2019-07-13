@@ -462,6 +462,7 @@ def extract_doc(sdoc):
 
 def predict_docs(docs, model):
 
+    if not docs: return {}
     features = []
     for doc in docs:
         wname, featureExtracted = extract_doc(doc)
@@ -495,6 +496,7 @@ def update_prediction_db(preds, dbpath):
         path to db json
     """
 
+    if not preds: return
     historyData = {
         "updateTime": int(time.time()),
         "updatedWorkflows": [],
