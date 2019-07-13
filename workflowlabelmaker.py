@@ -65,15 +65,15 @@ def get_action_history(wfname):
     prepid = str(param.get('PrepID', ''))
     rqstatus = str(param.get('RequestStatus', ''))
 
-    if not prepid or not rqstatus:
-        return ''
-    if not ('completed' in rqstatus or 'archived' in rqstatus):
-        return ''
+    if not prepid or not rqstatus: return []
+    if not ('completed' in rqstatus or 'archived' in rqstatus): return []
 
     queryurl = CMSPRODMONPAGE.format(prepid)
     sess = rh.HTMLSession()
     r = sess.get(queryurl)
-    result = re.findall(DIVPATTERN, r.html.find('script')[-1].text)
+    tosearch = r.html.find('script')
+    if not tosearch: return []
+    result = re.findall(DIVPATTERN, tosearch[-1].text)
 
     return result
 
@@ -96,8 +96,7 @@ def action_histories(wfnames):
             try:
                 histories[wf] = future.result()
             except Exception as e:
-                print(str(e))
-                print(f"Fail to get history for {wf}")
+                print(f"Fail to get history for {wf}; Msg: {str(e)}")
         return histories
 
 

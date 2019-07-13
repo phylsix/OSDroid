@@ -7,7 +7,7 @@ import logging.config
 import time
 
 import yaml
-from monitutils import get_yamlconfig, save_json
+from monitutils import get_yamlconfig, save_json, get_workflow_from_db
 from workflowmonitexporter import buildDoc, prepareWorkflows, updateWorkflowStatusToDb, sendDoc
 from workflowalerts import alertWithEmail, errorEmailShooter
 from workflowprediction import makingPredictionsWithML
@@ -74,7 +74,9 @@ def main():
         makingPredictionsWithML(totaldocs)
 
         # labeling
-        _wfnames = [p[0].name for pack in wfpacks for p in pack]
+        qcmd = "SELECT NAME FROM CMS_UNIFIED_ADMIN.WORKFLOW WHERE WM_STATUS LIKE '%archived'"
+        archivedwfs = get_workflow_from_db(CONFIG_FILE_PATH, qcmd)
+        _wfnames = [w.name for w in archivedwfs]
         logger.info("Passing {} workflows for label making..".format(len(_wfnames)))
         updateLabelArchives(_wfnames)
 
@@ -103,13 +105,14 @@ def test():
         for pack in wfpacks:
             docs = buildDoc(pack, doconcurrent=True)
             totaldocs.extend(docs)
-            for doc in docs:
-                print(json.dumps(doc, indent=4))
+
         # predictions
         logger.info("Making predicions for {} workflows..".format(len(totaldocs)))
         makingPredictionsWithML(totaldocs)
         # labeling
-        _wfnames = [p[0].name for pack in wfpacks for p in pack]
+        qcmd = "SELECT NAME FROM CMS_UNIFIED_ADMIN.WORKFLOW WHERE WM_STATUS LIKE '%archived'"
+        archivedwfs = get_workflow_from_db(CONFIG_FILE_PATH, qcmd)
+        _wfnames = [w.name for w in archivedwfs]
         logger.info("Passing {} workflows for label making..".format(len(_wfnames)))
         updateLabelArchives(_wfnames)
 
