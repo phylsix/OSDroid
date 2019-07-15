@@ -7,10 +7,11 @@ import logging.config
 import time
 
 import yaml
-from monitutils import get_yamlconfig, save_json
+from monitutils import get_yamlconfig, save_json, get_workflow_from_db
 from workflowmonitexporter import buildDoc, prepareWorkflows, updateWorkflowStatusToDb, sendDoc
 from workflowalerts import alertWithEmail, errorEmailShooter
 from workflowprediction import makingPredictionsWithML
+from workflowlabelmaker import updateLabelArchives
 
 LOGDIR = join(dirname(abspath(__file__)), 'Logs')
 CRED_FILE_PATH = join(dirname(abspath(__file__)), 'config/credential.yml')
@@ -69,12 +70,55 @@ def main():
             logger.info('Number of updated workflows: {}'.format(len(docs)))
 
         # predictions
+        logger.info("Making predicions for {} workflows..".format(len(totaldocs)))
         makingPredictionsWithML(totaldocs)
+
+        # labeling
+        qcmd = "SELECT NAME FROM CMS_UNIFIED_ADMIN.WORKFLOW WHERE WM_STATUS LIKE '%archived'"
+        archivedwfs = get_workflow_from_db(CONFIG_FILE_PATH, qcmd)
+        _wfnames = [w.name for w in archivedwfs]
+        logger.info("Passing {} workflows for label making..".format(len(_wfnames)))
+        updateLabelArchives(_wfnames)
 
     except Exception as e:
         logger.exception(f"Exception encountered, sending emails to {str(recipients)}")
         errorEmailShooter(str(e), recipients)
 
 
+def test():
+    with open(LOGGING_CONFIG, 'r') as f:
+        config = yaml.safe_load(f.read())
+        logging.config.dictConfig(config)
+
+    logger = logging.getLogger("testworkflowmonitLogger")
+
+    if not os.path.isdir(LOGDIR):
+        os.makedirs(LOGDIR)
+
+    cred = get_yamlconfig(CRED_FILE_PATH)
+    recipients = get_yamlconfig(CONFIG_FILE_PATH).get('alert_recipients', [])
+
+    try:
+
+        wfpacks = prepareWorkflows(CONFIG_FILE_PATH, test=True)
+        totaldocs = []
+        for pack in wfpacks:
+            docs = buildDoc(pack, doconcurrent=True)
+            totaldocs.extend(docs)
+
+        # predictions
+        logger.info("Making predicions for {} workflows..".format(len(totaldocs)))
+        makingPredictionsWithML(totaldocs)
+        # labeling
+        qcmd = "SELECT NAME FROM CMS_UNIFIED_ADMIN.WORKFLOW WHERE WM_STATUS LIKE '%archived'"
+        archivedwfs = get_workflow_from_db(CONFIG_FILE_PATH, qcmd)
+        _wfnames = [w.name for w in archivedwfs]
+        logger.info("Passing {} workflows for label making..".format(len(_wfnames)))
+        updateLabelArchives(_wfnames)
+
+    except Exception as e:
+        logger.exception(f"Exception encountered, sending emails to {str(recipients)}")
+
+
 if __name__ == "__main__":
-    main()
+    test()

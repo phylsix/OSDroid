@@ -7,3 +7,4 @@ CMSMonitoring
 cx_Oracle
 cmstoolbox
 flask
+flask_compress
