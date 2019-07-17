@@ -16,3 +16,10 @@ def archived_table_content():
 @tables.route("everything_table", methods=['GET'])
 def everything_table_content():
     return jsonify(TableBuilder().collect_everything(request))
+
+
+predhistory = Blueprint('predhistory', __name__, url_prefix='/predhistory')
+
+@predhistory.route('<wfname>', methods=['GET'])
+def workflow_history(wfname):
+    return jsonify(TableBuilder().get_workflow_history(wfname))
