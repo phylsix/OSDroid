@@ -459,10 +459,9 @@ def makingPredictionsWithML(docs):
     from os.path import join, dirname, abspath
 
     mfile = join(dirname(abspath(__file__)), "models/xgb_optimized.model")
-    dbfile = join(dirname(abspath(__file__)), "models/prediction_history.json")
 
     predres = predict_docs(docs, mfile)
-    update_prediction_db(predres, dbfile)
+    update_prediction_db(predres)
 
 
 ###############################################################################
@@ -501,7 +500,6 @@ def main():
 
     modelfile = "./models/xgb_default.model"
     predres = predict_docs(mdocs, modelfile)
-    # update_prediction_db(predres, './models/prediction_history.json')
     makingPredictionsWithML(mdocs)
 
 

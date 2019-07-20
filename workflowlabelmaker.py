@@ -152,7 +152,7 @@ def updateLabelArchives(wfnames, configpath=CONFIG_FILE_PATH):
     :param str configpath: path of config yml contains db connection info
     """
 
-    config = get_yamlconfig(configPath)
+    config = get_yamlconfig(configpath)
 
     labeled_ = get_labeled_workflows(config)
     workflowstoquery = [w for w in wfnames if w not in labeled_]
