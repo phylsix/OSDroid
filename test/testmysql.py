@@ -6,13 +6,13 @@ from os.path import join, dirname, abspath
 import json
 
 import pymysql
-from ..monitutils import get_yamlconfig
+import yaml
 
 CONFIG_FILE_PATH = join(dirname(abspath(__file__)), '../config/config.yml')
 
 
 def getconn():
-    config = get_yamlconfig(CONFIG_FILE_PATH)
+    config = yaml.load(open(CONFIG_FILE_PATH).read(), Loader=yaml.FullLoader)
     username_, password_, dbname_ = config['mysql']
     conn = pymysql.connect(
         host='localhost',
