@@ -8,8 +8,6 @@ import yaml
 from .serverside import table_schemas
 from .serverside.serverside_table import ServerSideTable
 
-DBPATH = join(dirname(abspath(__file__)), "../models/prediction_history.json")
-LABELDBPATH = join(dirname(abspath(__file__)), "../models/label_archives.json")
 
 CONFIG_FILE_PATH = join(dirname(abspath(__file__)), "../config/config.yml")
 
@@ -110,7 +108,6 @@ class TableBuilder:
         return ServerSideTable(request, tabledata, columns).output_result()
 
     def collect_archived(self, request):
-        labelsource = json.load(open(LABELDBPATH))
         db = Database(*self._config)
 
         tabledata = []
@@ -121,10 +118,12 @@ class TableBuilder:
                          WHERE timestamp!=(SELECT MAX(timestamp) FROM PredictionHistory)
                       ) AS Q ORDER BY timestamp DESC) AS T
                  GROUP BY name"""
-        tabledata = db.query(sql)
+        tabledata = db.query(sql) # list of dictionary
+        sql = "SELECT label FROM LabelArchive WHERE name=%s"
         for i, entry in enumerate(tabledata):
             entry['id'] = str(i)
-            entry['label'] = labelsource.get(entry['name'], -1)
+            label = db.query(sql, (entry['name'],))
+            entry['label'] = label[0]['label'] if label else -1
 
         columns = table_schemas.SERVERSIDE_TABLE_COLUMNS['archived']
 
