@@ -208,9 +208,9 @@ def get_labeled_workflows(config):
     result = []
     try:
         with conn.cursor() as cursor:
-            sql = "SELECT name FROM LableArchive;"
+            sql = "SELECT name FROM LabelArchive;"
             cursor.execute(sql)
-            result = cursor.fetchall()
+            result = [x[0] for x in cursor.fetchall()]
     finally:
         conn.close()
 
