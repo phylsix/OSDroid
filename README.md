@@ -14,13 +14,18 @@ cd web/
 
 ## Configurations etc.
 A few more configuration files are needed to get it rolling.
-1. `config/config.yml` for connections to UNIFIED DB, and alert email sending.
-    
+1. `config/config.yml` for connections to UNIFIED DB, MySQL DB and alert email sending.
+
     ```yml
     oracle:
-      - ***
-      - ***
-      - ***
+      - *** # username
+      - *** # password
+      - *** # db name
+
+    mysql:
+      - *** # username
+      - *** # password
+      - *** # db name
 
     alert_recipients:
       - XXX@YYYY.ZZ
@@ -39,6 +44,24 @@ A few more configuration files are needed to get it rolling.
 
 3. `models/xgb_optimized.model` for running workflow inference.
 
+4. `OSDroidDB` is the MySQL database storing workflow prediction history and labels.
+    Two tables need to be created for each.
+    ```sql
+    CREATE TABLE IF NOT EXISTS OSDroidDB.PredictionHistory (
+      hid BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      good FLOAT,
+      acdc FLOAT,
+      resubmit FLOAT,
+      timestamp TIMESTAMP
+    );
+    ```
+    ```sql
+    CREATE TABLE IF NOT EXISTS OSDroidDB.LabelArchive (
+      name VARCHAR(255) NOT NULL PRIMARY KEY,
+      label INT
+    );
+    ```
 ---
 
 ### Data source
@@ -56,5 +79,5 @@ A few more configuration files are needed to get it rolling.
 
 ### Web SPA
 - [Flask](https://github.com/pallets/flask)
-- [dataTable.js](https://github.com/DataTables/DataTables)
+- [dataTables.js](https://github.com/DataTables/DataTables)
 - [plotly.js](https://github.com/plotly/plotly.js/)
