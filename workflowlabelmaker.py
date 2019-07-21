@@ -24,9 +24,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests_html as rh
 from cmstoolbox.webtools import get_json
+from monitutils import get_yamlconfig, get_labeled_workflows, update_label_archive_db
 
 LOGGING_CONFIG = join(dirname(abspath(__file__)), 'config/configLogging.yml')
-DBPATH = join(dirname(abspath(__file__)), "models/label_archives.json")
+CONFIG_FILE_PATH = join(dirname(abspath(__file__)), 'config/config.yml')
 CMSPRODMONPAGE = 'https://dmytro.web.cern.ch/dmytro/cmsprodmon/workflows.php?prep_id={}'
 DIVPATTERN = re.compile(r'<div>([^<]*)</div>')
 
@@ -143,24 +144,22 @@ def label_workflows(wfnames):
     return wflabelmap
 
 
-def updateLabelArchives(wfnames, dbpath=DBPATH):
+def updateLabelArchives(wfnames, configpath=CONFIG_FILE_PATH):
     """Given a list of workflownames, make labels for those that has not been
     labelled before, and update db
 
     :param list wfnames: list of workflow names
-    :param str dbpath: path of archive file
+    :param str configpath: path of config yml contains db connection info
     """
 
-    res = {}
-    if os.path.exists(dbpath):
-        res.update(json.load(open(dbpath)))
+    config = get_yamlconfig(configpath)
 
-    workflowstoquery = [w for w in wfnames if w not in list(res)]
+    labeled_ = get_labeled_workflows(config)
+    workflowstoquery = [w for w in wfnames if w not in labeled_]
     logger.info("Making labels for {} workflows...".format(len(workflowstoquery)))
-    res.update(label_workflows(workflowstoquery))
 
-    with open(dbpath, 'w') as outf:
-        outf.write(json.dumps(res))
+    values = list(label_workflows(workflowstoquery).items())
+    update_label_archive_db(config, values)
 
 
 def test():

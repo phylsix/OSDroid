@@ -34,38 +34,45 @@ $(document).ready(function() {
       // open this row
       row.child(format(row.data())).show();
 
-      var rawdata = row.data()["History"];
-      var trace_good = {
-        type: "scatter",
-        mode: "lines",
-        name: "Good",
-        x: rawdata.map(x => x["timestamp"]),
-        y: rawdata.map(x => x["prediction"][0]),
-        line: { color: "#17BECF" }
-      };
-      var trace_acdc = {
-        type: "scatter",
-        mode: "lines",
-        name: "ACDC",
-        x: rawdata.map(x => x["timestamp"]),
-        y: rawdata.map(x => x["prediction"][1]),
-        line: { color: "#7F7F7F" }
-      };
-      var trace_resub = {
-        type: "scatter",
-        mode: "lines",
-        name: "Resubmit",
-        x: rawdata.map(x => x["timestamp"]),
-        y: rawdata.map(x => x["prediction"][2]),
-        line: { color: "#d62728" }
-      };
+      // ajax to get workflow history
+      var name = row.data()["Name"];
+      $.ajax({
+        url: "/predhistory/" + name,
+        success: function(rawdata) {
+          var data = [
+            {
+              type: "scatter",
+              mode: "lines",
+              name: "Good",
+              x: rawdata.map(x => x["timestamp"]),
+              y: rawdata.map(x => x["good"]),
+              line: { color: "#17BECF" }
+            },
+            {
+              type: "scatter",
+              mode: "lines",
+              name: "ACDC",
+              x: rawdata.map(x => x["timestamp"]),
+              y: rawdata.map(x => x["acdc"]),
+              line: { color: "#7F7F7F" }
+            },
+            {
+              type: "scatter",
+              mode: "lines",
+              name: "Resubmit",
+              x: rawdata.map(x => x["timestamp"]),
+              y: rawdata.map(x => x["resubmit"]),
+              line: { color: "#d62728" }
+            }
+          ];
 
-      var data = [trace_good, trace_acdc, trace_resub];
-      var layout = { title: row.data()["Name"] };
+          var layout = { title: name };
 
-      Plotly.newPlot("row_" + row.data()["id"], data, layout);
+          Plotly.newPlot("row_" + row.data()["id"], data, layout);
 
-      tr.addClass("shown");
+          tr.addClass("shown");
+        }
+      });
     }
   });
 });

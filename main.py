@@ -5,6 +5,7 @@ from os.path import join, dirname, abspath
 import logging
 import logging.config
 import time
+import traceback
 
 import yaml
 from monitutils import get_yamlconfig, save_json, get_workflow_from_db
@@ -80,9 +81,9 @@ def main():
         logger.info("Passing {} workflows for label making..".format(len(_wfnames)))
         updateLabelArchives(_wfnames)
 
-    except Exception as e:
+    except Exception:
         logger.exception(f"Exception encountered, sending emails to {str(recipients)}")
-        errorEmailShooter(str(e), recipients)
+        errorEmailShooter(traceback.format_exc(), recipients)
 
 
 def test():
@@ -116,7 +117,7 @@ def test():
         logger.info("Passing {} workflows for label making..".format(len(_wfnames)))
         updateLabelArchives(_wfnames)
 
-    except Exception as e:
+    except Exception:
         logger.exception(f"Exception encountered, sending emails to {str(recipients)}")
 
 

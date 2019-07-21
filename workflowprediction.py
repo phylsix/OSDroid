@@ -8,19 +8,22 @@ import json
 import time
 import statistics
 from collections import OrderedDict
+from os.path import join, dirname, abspath
 
 import numpy as np
 import pandas as pd
 import xgboost as xgb
+from monitutils import get_yamlconfig, fmttime, update_prediction_history_db
+
+CONFIG_FILE_PATH = join(dirname(abspath(__file__)), 'config/config.yml')
+
 
 # ------------------------------------------------------------------------------
 
 
 def get_time_sinceOpenInHour(doc):
     transitions = doc["transitions"]
-    runningOpen = [
-        cell for cell in transitions if cell.get("Status", None) == "running-open"
-    ]
+    runningOpen = [cell for cell in transitions if cell.get("Status", None) == "running-open"]
     runningOpenTime = None
     if runningOpen:
         runningOpenTime = runningOpen[0].get("UpdateTime", None)
@@ -55,9 +58,7 @@ def get_sites_siteCounts(doc):
 
     siteErrorsUnique = dict()
     for se in siteErrors:
-        siteErrorsUnique[se["site"]] = (
-            siteErrorsUnique.get(se["site"], 0) + se["counts"]
-        )
+        siteErrorsUnique[se["site"]] = siteErrorsUnique.get(se["site"], 0) + se["counts"]
     return len(siteErrorsUnique) if siteErrorsUnique else 0
 
 
@@ -86,9 +87,7 @@ def get_sites_errorPerSite_max(doc):
 
     siteErrorsUnique = dict()
     for se in siteErrors:
-        siteErrorsUnique[se["site"]] = (
-            siteErrorsUnique.get(se["site"], 0) + se["counts"]
-        )
+        siteErrorsUnique[se["site"]] = siteErrorsUnique.get(se["site"], 0) + se["counts"]
     errorPerSite = list(siteErrorsUnique.values())
     return max(errorPerSite) if siteErrorsUnique else -1
 
@@ -103,9 +102,7 @@ def get_sites_errorPerSite_min(doc):
 
     siteErrorsUnique = dict()
     for se in siteErrors:
-        siteErrorsUnique[se["site"]] = (
-            siteErrorsUnique.get(se["site"], 0) + se["counts"]
-        )
+        siteErrorsUnique[se["site"]] = siteErrorsUnique.get(se["site"], 0) + se["counts"]
     errorPerSite = list(siteErrorsUnique.values())
     return min(errorPerSite) if siteErrorsUnique else -1
 
@@ -120,9 +117,7 @@ def get_sites_errorPerSite_median(doc):
 
     siteErrorsUnique = dict()
     for se in siteErrors:
-        siteErrorsUnique[se["site"]] = (
-            siteErrorsUnique.get(se["site"], 0) + se["counts"]
-        )
+        siteErrorsUnique[se["site"]] = siteErrorsUnique.get(se["site"], 0) + se["counts"]
     errorPerSite = list(siteErrorsUnique.values())
     return statistics.median(errorPerSite) if siteErrorsUnique else -1.0
 
@@ -137,9 +132,7 @@ def get_sites_errorPerSite_mean(doc):
 
     siteErrorsUnique = dict()
     for se in siteErrors:
-        siteErrorsUnique[se["site"]] = (
-            siteErrorsUnique.get(se["site"], 0) + se["counts"]
-        )
+        siteErrorsUnique[se["site"]] = siteErrorsUnique.get(se["site"], 0) + se["counts"]
     errorPerSite = list(siteErrorsUnique.values())
     return statistics.mean(errorPerSite) if siteErrorsUnique else -1.0
 
@@ -154,9 +147,7 @@ def get_sites_errorPerSite_stdDev(doc):
 
     siteErrorsUnique = dict()
     for se in siteErrors:
-        siteErrorsUnique[se["site"]] = (
-            siteErrorsUnique.get(se["site"], 0) + se["counts"]
-        )
+        siteErrorsUnique[se["site"]] = siteErrorsUnique.get(se["site"], 0) + se["counts"]
     errorPerSite = list(siteErrorsUnique.values())
     return statistics.stdev(errorPerSite) if len(siteErrorsUnique) > 1 else -1.0
 
@@ -192,9 +183,7 @@ def get_errorCode_primary_leadingCode(doc):
         )
     prim_leadingCode = -1
     if primaryCodesUnique:
-        primaryCodeSorted = sorted(
-            primaryCodesUnique.items(), key=lambda kv: kv[1], reverse=True
-        )
+        primaryCodeSorted = sorted(primaryCodesUnique.items(), key=lambda kv: kv[1], reverse=True)
         prim_leadingCode = int(primaryCodeSorted[0][0])
     return prim_leadingCode
 
@@ -214,12 +203,8 @@ def get_errorCode_primary_leadingRatio(doc):
         )
     prim_leadingRatio = -1.0
     if primaryCodesUnique:
-        primaryCodeSorted = sorted(
-            primaryCodesUnique.items(), key=lambda kv: kv[1], reverse=True
-        )
-        prim_leadingRatio = primaryCodeSorted[0][1] / sum(
-            list(primaryCodesUnique.values())
-        )
+        primaryCodeSorted = sorted(primaryCodesUnique.items(), key=lambda kv: kv[1], reverse=True)
+        prim_leadingRatio = primaryCodeSorted[0][1] / sum(list(primaryCodesUnique.values()))
     return prim_leadingRatio
 
 
@@ -235,9 +220,7 @@ def get_errorCode_secondary_multiplicity(doc):
     for err in errors:
         if err["secondaryErrorCodes"]:
             for serr in err["secondaryErrorCodes"]:
-                secondaryCodeUnique[serr] = (
-                    secondaryCodeUnique.get(serr, 0) + err["counts"]
-                )
+                secondaryCodeUnique[serr] = secondaryCodeUnique.get(serr, 0) + err["counts"]
     return len(secondaryCodeUnique)
 
 
@@ -253,9 +236,7 @@ def get_errorCode_secondary_leadingCode(doc):
     for err in errors:
         if err["secondaryErrorCodes"]:
             for serr in err["secondaryErrorCodes"]:
-                secondaryCodeUnique[serr] = (
-                    secondaryCodeUnique.get(serr, 0) + err["counts"]
-                )
+                secondaryCodeUnique[serr] = secondaryCodeUnique.get(serr, 0) + err["counts"]
     secd_leadingCode = -1
     if secondaryCodeUnique:
         secondaryCodeSorted = sorted(
@@ -277,17 +258,12 @@ def get_errorCode_secondary_leadingRatio(doc):
     for err in errors:
         if err["secondaryErrorCodes"]:
             for serr in err["secondaryErrorCodes"]:
-                secondaryCodeUnique[serr] = (
-                    secondaryCodeUnique.get(serr, 0) + err["counts"]
-                )
+                secondaryCodeUnique[serr] = secondaryCodeUnique.get(serr, 0) + err["counts"]
     secd_leadingRatio = -1.0
     if secondaryCodeUnique:
-        secondaryCodeSorted = sorted(
-            secondaryCodeUnique.items(), key=lambda kv: kv[1], reverse=True
-        )
-        secd_leadingRatio = secondaryCodeSorted[0][1] / sum(
-            list(secondaryCodeUnique.values())
-        )
+        secondaryCodeSorted = sorted(secondaryCodeUnique.items(),
+                                     key=lambda kv: kv[1], reverse=True)
+        secd_leadingRatio = secondaryCodeSorted[0][1] / sum(list(secondaryCodeUnique.values()))
     return secd_leadingRatio
 
 
@@ -361,19 +337,9 @@ def get_errorKeywords_leading_encoded(doc):
         .replace("fail", "")
     )
     signaturekwrd = [
-        "step",
-        "submit",
-        "report",
-        "job",
-        "log",
-        "rss",
-        "assert",
-        "performance",
-        "fileopen",
-        "hlt",
-        "reco",
-        "script",
-        "event",
+        "step", "submit", "report", "job",
+        "log", "rss", "assert", "performance",
+        "fileopen", "hlt", "reco", "script", "event",
     ]
 
     totalweight = 0
@@ -402,12 +368,9 @@ def get_errorKeywords_leadingRatio(doc):
                 errorKeywordsUnique[kw] = errorKeywordsUnique.get(kw, 0) + err["counts"]
     kwrd_leadingRatio = -1.0
     if errorKeywordsUnique:
-        errorKeywordsSorted = sorted(
-            errorKeywordsUnique.items(), key=lambda kv: kv[1], reverse=True
-        )
-        kwrd_leadingRatio = errorKeywordsSorted[0][1] / sum(
-            list(errorKeywordsUnique.values())
-        )
+        errorKeywordsSorted = sorted(errorKeywordsUnique.items(),
+                                     key=lambda kv: kv[1], reverse=True)
+        kwrd_leadingRatio = errorKeywordsSorted[0][1] / sum(list(errorKeywordsUnique.values()))
     return kwrd_leadingRatio
 
 
@@ -427,31 +390,15 @@ def extract_doc(sdoc):
     featureExtracted["sites_errorPerSite_median"] = get_sites_errorPerSite_median(sdoc)
     featureExtracted["sites_errorPerSite_mean"] = get_sites_errorPerSite_mean(sdoc)
     featureExtracted["sites_errorPerSite_stdDev"] = get_sites_errorPerSite_stdDev(sdoc)
-    featureExtracted[
-        "errorCode_primary_multiplicity"
-    ] = get_errorCode_primary_multiplicity(sdoc)
-    featureExtracted[
-        "errorCode_primary_leadingCode"
-    ] = get_errorCode_primary_leadingCode(sdoc)
-    featureExtracted[
-        "errorCode_primary_leadingRatio"
-    ] = get_errorCode_primary_leadingRatio(sdoc)
-    featureExtracted[
-        "errorCode_secondary_multiplicity"
-    ] = get_errorCode_secondary_multiplicity(sdoc)
-    featureExtracted[
-        "errorCode_secondary_leadingCode"
-    ] = get_errorCode_secondary_leadingCode(sdoc)
-    featureExtracted[
-        "errorCode_secondary_leadingRatio"
-    ] = get_errorCode_secondary_leadingRatio(sdoc)
-    featureExtracted["errorKeywords_multiplicity"] = get_errorKeywords_multiplicity(
-        sdoc
-    )
+    featureExtracted["errorCode_primary_multiplicity"] = get_errorCode_primary_multiplicity(sdoc)
+    featureExtracted["errorCode_primary_leadingCode"] = get_errorCode_primary_leadingCode(sdoc)
+    featureExtracted["errorCode_primary_leadingRatio"] = get_errorCode_primary_leadingRatio(sdoc)
+    featureExtracted["errorCode_secondary_multiplicity"] = get_errorCode_secondary_multiplicity(sdoc)
+    featureExtracted["errorCode_secondary_leadingCode"] = get_errorCode_secondary_leadingCode(sdoc)
+    featureExtracted["errorCode_secondary_leadingRatio"] = get_errorCode_secondary_leadingRatio(sdoc)
+    featureExtracted["errorKeywords_multiplicity"] = get_errorKeywords_multiplicity(sdoc)
     featureExtracted["errorKeywords_leading"] = get_errorKeywords_leading_encoded(sdoc)
-    featureExtracted["errorKeywords_leadingRatio"] = get_errorKeywords_leadingRatio(
-        sdoc
-    )
+    featureExtracted["errorKeywords_leadingRatio"] = get_errorKeywords_leadingRatio(sdoc)
     featureExtracted["time_sinceOpenInHour"] = get_time_sinceOpenInHour(sdoc)
 
     return wname, featureExtracted
@@ -462,7 +409,8 @@ def extract_doc(sdoc):
 
 def predict_docs(docs, model):
 
-    if not docs: return {}
+    if not docs:
+        return {}
     features = []
     for doc in docs:
         wname, featureExtracted = extract_doc(doc)
@@ -485,39 +433,23 @@ def predict_docs(docs, model):
 # ------------------------------------------------------------------------------
 
 
-def update_prediction_db(preds, dbpath):
+def update_prediction_db(preds, configpath=CONFIG_FILE_PATH):
     """update prediction results
 
-    Parameters
-    ----------
-    preds : dict
-        predictions
-    dbpath : str
-        path to db json
+    Arguments:
+        preds {dict} -- dictionary -> {wfname: [good_prob, acdc_prob, resubmit_prob]}
+        configpath {str} -- path of configs contains db connection info
     """
 
     if not preds: return
-    historyData = {
-        "updateTime": int(time.time()),
-        "updatedWorkflows": [],
-        "workflowData": {},
-    }
-    if os.path.exists(dbpath):
-        historyData = json.loads(open(dbpath).read())
+    config = get_yamlconfig(configpath)
 
-    historyData["updateTime"] = int(time.time())
-    historyData["updatedWorkflows"] = list(preds.keys())
-
-    base = historyData["workflowData"]
-    for wf in preds:
-        if wf not in base:
-            base[wf] = []
-
-        base[wf].append({"timestamp": int(time.time()), "prediction": preds[wf]})
-    historyData["workflowData"] = base
-
-    with open(dbpath, "w") as outf:
-        outf.write(json.dumps(historyData))
+    timestamp = fmttime(time.time())
+    values = [
+        (wf, round(predval[0], 6), round(predval[1], 6), round(predval[2], 6), timestamp)
+        for wf, predval in preds.items()
+    ]
+    update_prediction_history_db(config, values)
 
 
 # ------------------------------------------------------------------------------
@@ -527,10 +459,9 @@ def makingPredictionsWithML(docs):
     from os.path import join, dirname, abspath
 
     mfile = join(dirname(abspath(__file__)), "models/xgb_optimized.model")
-    dbfile = join(dirname(abspath(__file__)), "models/prediction_history.json")
 
     predres = predict_docs(docs, mfile)
-    update_prediction_db(predres, dbfile)
+    update_prediction_db(predres)
 
 
 ###############################################################################
@@ -569,7 +500,6 @@ def main():
 
     modelfile = "./models/xgb_default.model"
     predres = predict_docs(mdocs, modelfile)
-    # update_prediction_db(predres, './models/prediction_history.json')
     makingPredictionsWithML(mdocs)
 
 

@@ -173,7 +173,7 @@ def prepareWorkflows(configpath, minfailurerate=0., test=False, batchsize=400):
     except Exception as e:
         logger.error("Fail to get running workflows from UNIFIED DB!\nMsg: {}".format(str(e)))
         raise
-    msg = 'Number of workflows fetched from db:',len(_wkfs)
+    msg = 'Number of workflows fetched from db: {}'.format(len(_wkfs))
     logger.info(msg)
     if test: _wkfs = _wkfs[-10:]
 
