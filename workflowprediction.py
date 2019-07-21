@@ -13,7 +13,7 @@ from os.path import join, dirname, abspath
 import numpy as np
 import pandas as pd
 import xgboost as xgb
-from monitutils import get_yamlconfig, fmttime, update_label_archive_db
+from monitutils import get_yamlconfig, fmttime, update_prediction_history_db
 
 CONFIG_FILE_PATH = join(dirname(abspath(__file__)), 'config/config.yml')
 
@@ -449,7 +449,7 @@ def update_prediction_db(preds, configpath=CONFIG_FILE_PATH):
         (wf, round(predval[0], 6), round(predval[1], 6), round(predval[2], 6), timestamp)
         for wf, predval in preds.items()
     ]
-    update_label_archive_db(config, values)
+    update_prediction_history_db(config, values)
 
 
 # ------------------------------------------------------------------------------
