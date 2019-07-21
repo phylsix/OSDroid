@@ -13,13 +13,19 @@ $(document).ready(function() {
         defaultContent: ""
       },
       { data: "Label" },
+      {
+        className: "correctness",
+        orderable: false,
+        data: null,
+        defaultContent: ""
+      },
       { data: "Name" },
       { data: "Good" },
       { data: "ACDC" },
       { data: "Resubmit" },
       { data: "Timestamp" }
     ],
-    order: [[6, "desc"]], // asc
+    order: [[7, "desc"]], // asc
 
     rowCallback: function(row, data, index) {
       // actual labels
@@ -28,31 +34,34 @@ $(document).ready(function() {
           .find("td:eq(1)")
           .text("Good");
         $(row)
-          .find("td:eq(2)")
+          .find("td:eq(3)")
           .css("color", "#17BECF");
         $(row)
           .find("td:eq(1)")
-          .css("color", "#17BECF");
+          .css("background", "#17BECF")
+          .css("color", "white");
       } else if (data.Label == 1) {
         $(row)
           .find("td:eq(1)")
           .text("ACDC-ed");
         $(row)
-          .find("td:eq(2)")
+          .find("td:eq(3)")
           .css("color", "#7F7F7F");
         $(row)
           .find("td:eq(1)")
-          .css("color", "#7F7F7F");
+          .css("background", "#7F7F7F")
+          .css("color", "white");
       } else if (data.Label == 2) {
         $(row)
           .find("td:eq(1)")
           .text("Resubmitted");
         $(row)
-          .find("td:eq(2)")
+          .find("td:eq(3)")
           .css("color", "#d62728");
         $(row)
           .find("td:eq(1)")
-          .css("color", "#d62728");
+          .css("background", "#d62728")
+          .css("color", "white");
       } else {
         $(row)
           .find("td:eq(1)")
@@ -61,14 +70,33 @@ $(document).ready(function() {
 
       // predictions
       if (data.Good > data.ACDC && data.Good > data.Resubmit) {
-        $("td:eq(3)", row).css("color", "#17BECF");
+        $("td:eq(4)", row).css("color", "#17BECF");
+        if (data.Label == 0) {
+          $("td:eq(2)", row).css("background", "#a1d99b");
+        } else if (data.Label > 0) {
+          $("td:eq(2)", row).css("background", "#d95f0e");
+        }
       }
       if (data.ACDC > data.Good && data.ACDC > data.Resubmit) {
-        $("td:eq(4)", row).css("color", "#7F7F7F");
+        $("td:eq(5)", row).css("color", "#7F7F7F");
+        if (data.Label == 1) {
+          $("td:eq(2)", row).css("background", "#a1d99b");
+        } else if (data.Label >= 0) {
+          $("td:eq(2)", row).css("background", "#d95f0e");
+        }
+
       }
       if (data.Resubmit > data.Good && data.Resubmit > data.ACDC) {
-        $("td:eq(5)", row).css("color", "#d62728");
+        $("td:eq(6)", row).css("color", "#d62728");
+        if (data.Label == 2) {
+          $("td:eq(2)", row).css("background", "#a1d99b");
+        } else if (data.Label >= 0) {
+          $("td:eq(2)", row).css("background", "#d95f0e");
+        }
+
       }
+
+
     }
   });
 

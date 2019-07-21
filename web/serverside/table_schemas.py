@@ -105,13 +105,6 @@ SERVERSIDE_TABLE_COLUMNS['archived'] = [
         "default": "",
         "order": 6,
         "searchable": False
-    },
-    {
-        "data_name": "history",
-        "column_name": "History",
-        "default": "",
-        "order": 7,
-        "searchable": False
     }
 ]
 
