@@ -8,8 +8,8 @@
       <th></th>
       <th>Name</th>
       <th>Good</th>
-      <th>ACDC</th>
-      <th>Resubmit</th>
+      <th>Site Issue</th>
+      <th>Workflow Issue</th>
       <th>Timestamp</th>
     </tr>
   </thead>
@@ -18,21 +18,15 @@
       <th></th>
       <th>Name</th>
       <th>Good</th>
-      <th>ACDC</th>
-      <th>Resubmit</th>
+      <th>Site Issue</th>
+      <th>Workflow Issue</th>
       <th>Timestamp</th>
     </tr>
   </tfoot>
 </table>
 
 {% endblock %} {% block scripts %}
-<script
-  type="text/javascript"
-  src="{{ url_for('static', filename='base.js')}}"
-></script>
-<script
-  type="text/javascript"
-  src="{{ url_for('static', filename='everything.js')}}"
-></script>
+<script type="text/javascript" src="{{ url_for('static', filename='base.js')}}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='everything.js')}}"></script>
 
 {% endblock %}

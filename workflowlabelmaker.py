@@ -2,34 +2,34 @@
 """
 After a workflow enters *-archived status, we can make labels for them such
 that comparisons with previous predictions can be made.
-For now, the strategy is to query workflow action history from cmsprodmon page
-by the its prepid.
-Note: because ``get_json`` is used to get workflow prepid, environment variable
-`X509_USER_PROXY` must point to a valid proxy.
+For now, the strategy is to get a list of workflows having the same prepID with
+the interested workflow, and make label based on the following rule.
 
 single workflow name                        ==> Good        | 0
 multiple workflow name:
         has 'ACDC' in one of workflow names ==> ACDC-ed     | 1
         no 'ACDC' in any of workflow anmes  ==> Resubmitted | 2
+
+Note: because ``get_json`` is used to get workflow prepid, environment variable
+`X509_USER_PROXY` must point to a valid proxy.
 """
 
-import re
-import os
 import json
-import yaml
 import logging
 import logging.config
-from os.path import join, dirname, abspath
+import os
+import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from os.path import abspath, dirname, join
 
-import requests_html as rh
+import yaml
 from cmstoolbox.webtools import get_json
-from monitutils import get_yamlconfig, get_labeled_workflows, update_label_archive_db
+from workflowwrapper import Workflow, PrepID
+from monitutils import (get_labeled_workflows, get_yamlconfig,
+                        update_label_archive_db)
 
 LOGGING_CONFIG = join(dirname(abspath(__file__)), 'config/configLogging.yml')
 CONFIG_FILE_PATH = join(dirname(abspath(__file__)), 'config/config.yml')
-CMSPRODMONPAGE = 'https://dmytro.web.cern.ch/dmytro/cmsprodmon/workflows.php?prep_id={}'
-DIVPATTERN = re.compile(r'<div>([^<]*)</div>')
 
 logger = logging.getLogger("workflowmonitLogger")
 rootlogger = logging.getLogger()
@@ -41,40 +41,20 @@ class No502WarningFilter(logging.Filter):
 rootlogger.addFilter(No502WarningFilter())
 
 
-def get_workflow_param(wfname):
-
-    try:
-        result = get_json(
-            'cmsweb.cern.ch',
-            '/reqmgr2/data/request',
-            params={'name': wfname},
-            use_https=True,
-            use_cert=True
-        )
-        for params in result['result']:
-            for key, item in params.items():
-                if key == wfname:
-                    return item
-
-    except Exception as e:
-        logger.error('Failed to get workflow parameters from reqmgr. workflow: {0}, Msg: {1}'.format(wfname, str(e)) )
-
 
 def get_action_history(wfname):
 
-    param = get_workflow_param(wfname)
+    result = []
+    wf = Workflow(wfname)
+    param = wf.get_reqparams()
     prepid = str(param.get('PrepID', ''))
     rqstatus = str(param.get('RequestStatus', ''))
 
-    if not prepid or not rqstatus: return []
-    if not ('completed' in rqstatus or 'archived' in rqstatus): return []
+    if not prepid or not rqstatus: return result
+    if not ('completed' in rqstatus or 'archived' in rqstatus): return result
 
-    queryurl = CMSPRODMONPAGE.format(prepid)
-    sess = rh.HTMLSession()
-    r = sess.get(queryurl)
-    tosearch = r.html.find('script')
-    if not tosearch: return []
-    result = re.findall(DIVPATTERN, tosearch[-1].text)
+    prepinfo = PrepID(prepid)
+    result = prepinfo.workflows
 
     return result
 
@@ -175,8 +155,10 @@ def test():
     wfarchived_ = [w for w in wfall_ if w not in wfupdated_]
 
     import time
+    from pprint import pprint
     timestart = time.time()
-    updateLabelArchives(wfarchived_)
+    labels = label_workflows(wfarchived_)
+    pprint(labels)
     print("-----> took ", time.time() - timestart, 's')
 
 

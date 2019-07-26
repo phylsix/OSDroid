@@ -5,19 +5,63 @@
 from cmstoolbox.webtools import get_json
 
 
-class Workflow:
-    def __init__(self, wfname, url="cmsweb.cern.ch"):
-        self.name_ = wfname
+class PrepID:
+    def __init__(self, prepid, url="cmsweb.cern.ch"):
+        self.name_ = prepid
         self.url_ = url
-        self.reqdetail_ = None
-        self.jobdetail_ = None
+
+        result = get_json(self.url_, '/reqmgr2/data/request',
+                          params={'prep_id': self.name_, 'detail': 'true'},
+                          use_cert=True)
+        result = result.get('result', [])
+        self.data_ = result[0] if result else {}
 
     @property
     def name(self):
         return self.name_
 
+    def __str__(self):
+        return f"PrepID_{self.name}"
+
+    def __repr__(self):
+        return f"<PrepID {self.name}>"
+
+    @property
+    def workflows(self):
+        """get list of workflow names associated with this prepid
+
+        :return: list of names
+        :rtype: list
+        """
+        return list(self.data_)
+
+
+class Workflow:
+    def __init__(self, wfname, url="cmsweb.cern.ch"):
+        self.name_ = wfname
+        self.url_ = url
+        self.reqdetail_ = {}
+        self.jobdetail_ = {}
+        self.reqparams_ = {}
+
+    @property
+    def name(self):
+        return self.name_
+
+    def __str__(self):
+        return f"Workflow_{self.name}"
+
+    def __repr__(self):
+        return f"<Workflow {self.name}>"
+
     def get_jobdetail(self):
-        if self.jobdetail_ is None:
+        """fetch job detail from wmstatsserver, containing error info, available
+        for running workflows.
+
+        :return: job details
+        :rtype: dict
+        """
+        if not self.jobdetail_:
             self.jobdetail_ = get_json(
                 self.url_,
                 f"/wmstatsserver/data/jobdetail/{self.name_}",
@@ -25,7 +69,12 @@ class Workflow:
         return self.jobdetail_
 
     def get_reqdetail(self):
-        if self.reqdetail_ is None:
+        """fetch request details from wmstatsserver, available for running workflows.
+
+        :return: request detail
+        :rtype: dict
+        """
+        if not self.reqdetail_:
             reqDetail = {self.name_: dict()}
             raw = get_json(
                 self.url_,
@@ -39,6 +88,37 @@ class Workflow:
             self.reqdetail_ = reqDetail
 
         return self.reqdetail_
+
+    def get_reqparams(self):
+        """fetch workflow parameters from reqmgr2
+        example: https://cmsweb.cern.ch/reqmgr2/data/request?name=pdmvserv_task_B2G-RunIIFall17wmLHEGS-00287__v1_T_180427_163824_4799
+
+        :return: workflow parameters
+        :rtype: dict
+        """
+        if not self.reqparams_:
+            result = get_json(
+                self.url_,
+                '/reqmgr2/data/request',
+                params={'name': self.name_},
+                use_https=True,
+                use_cert=True
+            )
+            for params in result['result']:
+                for key, item in params.items():
+                    if key == self.name_:
+                        self.reqparams_ = item
+
+        return self.reqparams_
+
+    def get_prepid(self):
+        """get prepid of workflow from req parameters,
+        if fail to get, return empty string
+
+        :return: prepid
+        :rtype: str
+        """
+        return self.reqparams_.get('PrepID', '')
 
     def get_failure_rate(self):
         result = self.get_reqdetail()
@@ -114,42 +194,53 @@ class Workflow:
 
 def test():
     import time
+    from pprint import pprint
 
-    wf0 = Workflow(
-        'pdmvserv_task_HIG-RunIIAutumn18NanoAOD-00665__v1_T_190112_020711_2622'
-    )
-    wf1 = Workflow(
-        'pdmvserv_task_HIG-RunIIAutumn18NanoAOD-00678__v1_T_190112_061134_937')
+    wf0 = Workflow('pdmvserv_task_HIG-RunIIAutumn18NanoAOD-00665__v1_T_190112_020711_2622')
+    wf1 = Workflow('pdmvserv_task_HIG-RunIIAutumn18NanoAOD-00678__v1_T_190112_061134_937')
+    prepid = PrepID('task_B2G-RunIIFall17wmLHEGS-00287')
 
-    print("<workflow 0>", wf0.name_)
+    print("<workflow 0>", wf0)
     startTime = time.time()
-    print("[job detail]", wf0.get_jobdetail())
+    print("[job detail]")
+    pprint(wf0.get_jobdetail())
     print("----- > took", time.time() - startTime, "s")
     startTime = time.time()
-    print("[req detail]", wf0.get_reqdetail())
+    print("[req detail]")
+    pprint(wf0.get_reqdetail())
     print("----- > took", time.time() - startTime, "s")
     startTime = time.time()
     print("[failure rate]", wf0.get_failure_rate())
     print("----- > took", time.time() - startTime, "s")
     startTime = time.time()
-    print("[errors]", wf0.get_errors())
+    print("[errors]")
+    pprint(wf0.get_errors())
     print("----- > took", time.time() - startTime, "s")
 
     print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
-    print("<workflow 1>", wf1.name_)
+    print("<workflow 1>", wf1)
     startTime = time.time()
-    print("[job detail]", wf1.get_jobdetail())
+    print("[job detail]")
+    pprint(wf1.get_jobdetail())
     print("----- > took", time.time() - startTime, "s")
     startTime = time.time()
-    print("[req detail]", wf1.get_reqdetail())
+    print("[req detail]")
+    pprint(wf1.get_reqdetail())
     print("----- > took", time.time() - startTime, "s")
     startTime = time.time()
     print("[failure rate]", wf1.get_failure_rate())
     print("----- > took", time.time() - startTime, "s")
     startTime = time.time()
-    print("[errors]", wf1.get_errors())
+    print("[errors]")
+    pprint(wf1.get_errors())
     print("----- > took", time.time() - startTime, "s")
+
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
+    print("<PrepID>", prepid)
+    print("[workflows]")
+    pprint(prepid.workflows)
 
 
 if __name__ == "__main__":
