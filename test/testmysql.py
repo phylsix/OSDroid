@@ -2,10 +2,13 @@
 """Transitions from json source to MySQL db
 """
 
-from os.path import join, dirname, abspath
 import json
+import os
+import sys
+from os.path import abspath, dirname, exists, join
 
 import pymysql
+
 import yaml
 
 CONFIG_FILE_PATH = join(dirname(abspath(__file__)), '../config/config.yml')
@@ -31,7 +34,7 @@ def truncatetable(tablename):
     conn.close()
 
 
-def createHistDB():
+def createHistTable():
     conn = getconn()
 
     # conn.cursor().execute('create database OSDroidDB')
@@ -82,7 +85,7 @@ def insertHist():
     conn.close()
 
 
-def createLabelDB():
+def createLabelTable():
     conn = getconn()
 
     # conn.cursor().execute('create database OSDroidDB')
@@ -99,7 +102,7 @@ def insertLabel():
 
     conn = getconn()
 
-    data = json.load(open('../models/label_archives.json'))
+    data = json.load(open('newlabels.json'))
     values = list(data.items())
     print("# records to insert into LabelArchive:", len(values))
 
@@ -114,11 +117,35 @@ def insertLabel():
     conn.close()
 
 
+def makeNewLabels():
+    sys.path.insert(0, '..')
+    from workflowlabelmaker import label_workflows
+
+    conn = getconn()
+    workflows = None
+    with conn.cursor() as cursor:
+        cursor.execute('SELECT DISTINCT(name) FROM PredictionHistory')
+        workflows = [x[0] for x in cursor.fetchall()]
+
+    result = {}
+    #workflows = workflows[:10]
+    if exists('newlabels.json'):
+        result = json.load(open('newlabels.json'))
+        wfs = [w for w in workflows if w not in result]
+        result.update(label_workflows(wfs))
+    else:
+        result.update(label_workflows(workflows))
+
+    json.dump(result, open('newlabels.json', 'w'))
+
+
 
 if __name__ == "__main__":
 
-    truncatetable('PredictionHistory')
-    insertHist()
+    # truncatetable('PredictionHistory')
+    # insertHist()
 
-    createLabelDB()
-    insertLabel()
+    # createLabelTable()
+    # insertLabel()
+   truncatetable('LabelArchive')
+   insertLabel()
