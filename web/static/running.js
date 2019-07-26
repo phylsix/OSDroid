@@ -51,7 +51,7 @@ $(document).ready(function() {
             {
               type: "scatter",
               mode: "lines",
-              name: "ACDC",
+              name: "Site Issue",
               x: rawdata.map(x => x["timestamp"]),
               y: rawdata.map(x => x["acdc"]),
               line: { color: "#7F7F7F" }
@@ -59,7 +59,7 @@ $(document).ready(function() {
             {
               type: "scatter",
               mode: "lines",
-              name: "Resubmit",
+              name: "Workflow Issue",
               x: rawdata.map(x => x["timestamp"]),
               y: rawdata.map(x => x["resubmit"]),
               line: { color: "#d62728" }

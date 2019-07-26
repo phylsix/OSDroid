@@ -1,49 +1,38 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>OSDroid</title>
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css"
-    />
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="{{url_for('static', filename='site.css')}}"
-    />
-    <script
-      src="https://code.jquery.com/jquery-3.4.1.min.js"
-      integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
-      crossorigin="anonymous"
-    ></script>
-    <script
-      type="text/javascript"
-      charset="utf8"
-      src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"
-    ></script>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-  </head>
-  <body>
-    <div class="banner">
-      <h1>OSDroid predictions</h1>
 
-      <div class="navbar">
-        <a href="{{ url_for('main.index') }}">Running</a> |
-        <a href="{{ url_for('main.archived') }}">Archived</a> |
-        <a href="{{ url_for('main.everything') }}">Everything</a>
-      </div>
+<head>
+  <meta charset="utf-8" />
+  <title>OSDroid</title>
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" />
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='site.css')}}" />
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+  <script type="text/javascript" charset="utf8"
+    src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+
+<body>
+  <div class="banner">
+    <h1>OSDroid predictions</h1>
+
+    <div class="navbar">
+      <a href="{{ url_for('main.index') }}">Running</a> |
+      <a href="{{ url_for('main.archived') }}">Archived</a> |
+      <a href="{{ url_for('main.everything') }}">Everything</a>
     </div>
+  </div>
 
-    <div class="body-content">
-      {% block content %} {% endblock %}
-      <hr />
-      <footer>
-        <p>&copy; 2019 W.Si for CMS CompOps T&I</p>
-      </footer>
-    </div>
+  <div class="body-content">
+    {% block content %} {% endblock %}
+    <hr />
+    <footer>
+      <p>&copy; 2019 W.Si for CMS CompOps T&I</p>
+    </footer>
+  </div>
 
-    {% block scripts %} {% endblock %}
-  </body>
+  {% block scripts %} {% endblock %}
+</body>
+
 </html>

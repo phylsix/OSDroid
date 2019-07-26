@@ -43,7 +43,7 @@ $(document).ready(function() {
       } else if (data.Label == 1) {
         $(row)
           .find("td:eq(1)")
-          .text("ACDC-ed");
+          .text("Site Issue");
         $(row)
           .find("td:eq(3)")
           .css("color", "#7F7F7F");
@@ -54,7 +54,7 @@ $(document).ready(function() {
       } else if (data.Label == 2) {
         $(row)
           .find("td:eq(1)")
-          .text("Resubmitted");
+          .text("Workflow Issue");
         $(row)
           .find("td:eq(3)")
           .css("color", "#d62728");
@@ -130,7 +130,7 @@ $(document).ready(function() {
             {
               type: "scatter",
               mode: "lines",
-              name: "ACDC",
+              name: "Site Issue",
               x: rawdata.map(x => x["timestamp"]),
               y: rawdata.map(x => x["acdc"]),
               line: { color: "#7F7F7F" }
@@ -138,7 +138,7 @@ $(document).ready(function() {
             {
               type: "scatter",
               mode: "lines",
-              name: "Resubmit",
+              name: "Workflow Issue",
               x: rawdata.map(x => x["timestamp"]),
               y: rawdata.map(x => x["resubmit"]),
               line: { color: "#d62728" }
