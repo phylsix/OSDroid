@@ -14,7 +14,7 @@ CRED_FILE_PATH = join(dirname(abspath(__file__)), 'config/credential.yml')
 CONFIG_FILE_PATH = join(dirname(abspath(__file__)), 'config/config.yml')
 LOGGING_CONFIG = join(dirname(abspath(__file__)), 'config/configLogging.yml')
 
-schedule.every(10).minutes.do(run)
+schedule.every(50).minutes.do(run)
 
 
 if __name__ == "__main__":

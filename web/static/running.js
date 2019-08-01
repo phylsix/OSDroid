@@ -18,7 +18,18 @@ $(document).ready(function() {
       { data: "Resubmit" },
       { data: "Timestamp" }
     ],
-    order: [[5, "desc"]]
+    order: [[5, "desc"]], //asc
+
+    rowCallback: function(row, data) {
+      $(row)
+        .find("td:eq(1)")
+        .html(
+          data.Name +
+            ' | <a href="https://cms-unified.web.cern.ch/cms-unified//report/' +
+            data.Name +
+            '" style="font-size: small;" target="_blank">unified</a>'
+        );
+    }
   });
 
   // Add event listener for opening and closing details

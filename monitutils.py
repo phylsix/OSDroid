@@ -147,7 +147,7 @@ def create_label_archive_db(config):
     try:
         with conn.cursor() as cursor:
             sql = """\
-                create table if not exists OSDroidDB.LableArchive (
+                create table if not exists OSDroidDB.LabelArchive (
                     name VARCHAR(255) NOT NULL PRIMARY KEY,
                     lable INT
                 ); """
@@ -190,7 +190,7 @@ def update_label_archive_db(config, values):
         values = [values,]
     try:
         with conn.cursor() as cursor:
-            sql = "REPLACE INTO LableArchive (name, label) VALUES (%s, %s);"
+            sql = "REPLACE INTO LabelArchive (name, label) VALUES (%s, %s);"
             cursor.executemany(sql, values)
 
         conn.commit()
