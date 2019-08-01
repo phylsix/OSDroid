@@ -84,7 +84,6 @@ $(document).ready(function() {
         } else if (data.Label >= 0) {
           $("td:eq(2)", row).css("background", "#d95f0e");
         }
-
       }
       if (data.Resubmit > data.Good && data.Resubmit > data.ACDC) {
         $("td:eq(6)", row).css("color", "#d62728");
@@ -93,10 +92,16 @@ $(document).ready(function() {
         } else if (data.Label >= 0) {
           $("td:eq(2)", row).css("background", "#d95f0e");
         }
-
       }
 
-
+      $(row)
+        .find("td:eq(3)")
+        .html(
+          data.Name +
+            ' | <a href="https://cms-unified.web.cern.ch/cms-unified//report/' +
+            data.Name +
+            '" style="font-size: small;" target="_blank">unified</a>'
+        );
     }
   });
 
@@ -153,5 +158,16 @@ $(document).ready(function() {
         }
       });
     }
+  });
+
+  // explain text
+  $("#tooltipbtn").click(function() {
+    $("#bigTooltip").toggle("fast", function() {
+      if ($(this).is(":visible")) {
+        $("#tooltipbtn").text("hide explain text");
+      } else {
+        $("#tooltipbtn").text("show explain text");
+      }
+    });
   });
 });

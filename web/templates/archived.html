@@ -1,6 +1,40 @@
 {% extends "layout.html" %} {% block content %}
 
 <h3>archived workflows [{{ count }}]</h3>
+<button id="tooltipbtn">show explain text</button>
+<div id="bigTooltip" style="display: none">
+  <ul>
+    <li>
+      <strong>Label</strong>: Unknown |
+      <span style="color:white; background: #17BECF">Good</span> |
+      <span style="color:white; background: #7F7F7F">Site Issue</span> |
+      <span style="color:white; background: #d62728">Workflow Issue</span> made
+      by informaiton from reqmgr2, see
+      <a
+        href="https://github.com/CMSCompOps/OSDroid/blob/master/workflowlabelmaker.py#L3-L12"
+        target="_blank"
+        >here</a
+      >.
+    </li>
+    <li>
+      <span style="background: #a1d99b">&nbsp;&nbsp;&nbsp;&nbsp;</span> known
+      labels correctly predicted by the last prediction.
+    </li>
+    <li>
+      <span style="background: #d95f0e">&nbsp;&nbsp;&nbsp;&nbsp;</span> known
+      labels incorrectly predicted by the last prediction.
+    </li>
+    <li>
+      <strong>Name</strong>: workflow names(label color-coded) with relevant
+      links.
+    </li>
+    <li>
+      <strong>Good, Site Issue, Workflow Issue</strong>: probabilities from last
+      prediction.
+    </li>
+    <li><strong>Timestamp</strong>: when the last prediction was made.</li>
+  </ul>
+</div>
 
 <table id="wftable" class="display">
   <thead>
@@ -31,7 +65,13 @@
 
 {% endblock %} {% block scripts %}
 
-<script type="text/javascript" src="{{ url_for('static', filename='base.js')}}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='archived.js')}}"></script>
+<script
+  type="text/javascript"
+  src="{{ url_for('static', filename='base.js')}}"
+></script>
+<script
+  type="text/javascript"
+  src="{{ url_for('static', filename='archived.js')}}"
+></script>
 
 {% endblock %}

@@ -5,10 +5,11 @@ that comparisons with previous predictions can be made.
 For now, the strategy is to get a list of workflows having the same prepID with
 the interested workflow, and make label based on the following rule.
 
-single workflow name                        ==> Good        | 0
+single workflow name                        ==> Good           | 0
 multiple workflow name:
-        has 'ACDC' in one of workflow names ==> ACDC-ed     | 1
-        no 'ACDC' in any of workflow anmes  ==> Resubmitted | 2
+        has 'ACDC' in one of workflow names ==> Site Issue     | 1
+        no 'ACDC' in any of workflow anmes  ==> Workflow Issue | 2
+no info available                           ==> Unknown        | -1
 
 Note: because ``get_json`` is used to get workflow prepid, environment variable
 `X509_USER_PROXY` must point to a valid proxy.
@@ -87,7 +88,7 @@ def create_label(wf, wfnames):
 
     :param str wf: mother workflow
     :param list wfnames: list of workflow names
-    :returns: integer code as label: 0: good, 1: ACDC-ed, 2: Resubmitted, -1: unknown
+    :returns: integer code as label: 0: good, 1: site issue, 2: workflow issue, -1: unknown
     :rtype: int
     """
 
