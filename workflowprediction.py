@@ -423,6 +423,10 @@ def predict_docs(docs, model):
 
     bst = xgb.Booster({"nthread": 4})
     bst.load_model(model)
+
+    if bst.attributes().get('SAVED_PARAM_predictor', None)=='gpu_predictor':
+        bst.set_attr(SAVED_PARAM_predictor=None)
+
     predprob = bst.predict(Xxg).reshape(X.shape[0], 3)
 
     res = dict(zip(df["name"].values, predprob.tolist()))
@@ -498,9 +502,10 @@ def main():
     print("\n\nmultiple docs -->")
     # test_multiDocs(mdocs)
 
-    modelfile = "./models/xgb_default.model"
-    predres = predict_docs(mdocs, modelfile)
-    makingPredictionsWithML(mdocs)
+    modelfile = "./models/xgb_optimized.model"
+    predres = predict_docs(mdocs[:20], modelfile)
+    print(json.dumps(predres, indent=4))
+    #makingPredictionsWithML(mdocs)
 
 
 ###############################################################################
