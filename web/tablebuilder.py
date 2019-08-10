@@ -97,8 +97,10 @@ class TableBuilder:
         tabledata = []
         sql = """SELECT name, good, acdc, resubmit, timestamp
                  FROM PredictionHistory
-                 WHERE timestamp=(SELECT MAX(timestamp)
-                 FROM PredictionHistory)"""
+                 WHERE timestamp=(
+                     SELECT MAX(timestamp)
+                     FROM PredictionHistory
+                 )"""
         tabledata = db.query(sql)
         for i, entry in enumerate(tabledata):
             entry['id'] = str(i)
@@ -107,23 +109,56 @@ class TableBuilder:
 
         return ServerSideTable(request, tabledata, columns).output_result()
 
+    def collect_running_long(self, request, days=2):
+        db = Database(*self._config)
+
+        tabledata = []
+        sql = """\
+            SELECT B.name, B.good, B.acdc, B.resubmit, B.timestamp
+            FROM (
+                SELECT *, MAX(timestamp) AS maxts, MIN(timestamp) AS mints
+                FROM (
+                    SELECT *
+                    FROM PredictionHistory
+                    ORDER BY timestamp DESC
+                ) AS T
+                GROUP BY name
+                HAVING maxts=(
+                    SELECT MAX(timestamp)
+                    FROM PredictionHistory
+                    )
+                    AND TIMESTAMPDIFF(DAY, mints, maxts)>%d
+            ) AS B""" % days
+        tabledata = db.query(sql)
+        for i, entry in enumerate(tabledata):
+            entry['id'] = str(i)
+
+        columns = table_schemas.SERVERSIDE_TABLE_COLUMNS['runninglong']
+
+        return ServerSideTable(request, tabledata, columns).output_result()
+
     def collect_archived(self, request):
         db = Database(*self._config)
 
         tabledata = []
-        sql = """SELECT name, good, acdc, resubmit, timestamp
-                 FROM (
-                     SELECT * FROM (
-                         SELECT * FROM PredictionHistory
-                         WHERE timestamp!=(SELECT MAX(timestamp) FROM PredictionHistory)
-                      ) AS Q ORDER BY timestamp DESC) AS T
-                 GROUP BY name"""
-        tabledata = db.query(sql) # list of dictionary
-        sql = "SELECT label FROM LabelArchive WHERE name=%s"
+        sql = """\
+            SELECT B.name, B.good, B.acdc, B.resubmit, B.timestamp, COALESCE(LabelArchive.label, -1) AS label
+            FROM (
+                SELECT *, MAX(timestamp) AS maxts, MIN(timestamp) AS mints
+                FROM (
+                    SELECT *
+                    FROM PredictionHistory
+                    ORDER BY timestamp DESC
+                ) AS T
+                GROUP BY name
+                HAVING maxts!=(SELECT MAX(timestamp) FROM PredictionHistory)
+            ) AS B
+                LEFT JOIN LabelArchive
+                ON B.name = LabelArchive.name
+        """
+        tabledata = db.query(sql)  # list of dictionary
         for i, entry in enumerate(tabledata):
             entry['id'] = str(i)
-            label = db.query(sql, (entry['name'],))
-            entry['label'] = label[0]['label'] if label else -1
 
         columns = table_schemas.SERVERSIDE_TABLE_COLUMNS['archived']
 

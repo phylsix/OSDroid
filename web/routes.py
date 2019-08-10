@@ -14,6 +14,10 @@ def index():
     }
     return render_template('home.html', **data_)
 
+@main.route('/runninglong')
+def runninglong():
+    return render_template('runninglong.html')
+
 @main.route('/archived')
 def archived():
     tb = TableBuilder()

@@ -9,6 +9,10 @@ tables = Blueprint('tables', __name__, url_prefix='/tables')
 def running_table_content():
     return jsonify(TableBuilder().collect_running(request))
 
+@tables.route("runninglong_table", methods=['GET'])
+def runninglong_table_content():
+    return jsonify(TableBuilder().collect_running_long(request))
+
 @tables.route("archived_table", methods=['GET'])
 def archived_table_content():
     return jsonify(TableBuilder().collect_archived(request))
