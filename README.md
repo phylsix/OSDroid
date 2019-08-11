@@ -4,6 +4,8 @@ Predict running workflows' actions. Currently running at vocms0116.
 
 > Project under CMS CompOps T&I
 
+![](./test/ScreenshotOSDroid.png)
+
 ## How to run
 
 After environments set up and necessary configuration pieces added,
