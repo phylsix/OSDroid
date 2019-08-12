@@ -1,6 +1,6 @@
 {% extends "layout.html" %} {% block content %}
 
-<h3>running workflows > 2 days</h3>
+<h3>running workflows > 2 weeks</h3>
 
 <table id="wftable" class="display">
   <thead>
@@ -27,5 +27,5 @@
 
 {% endblock %} {% block scripts %}
 <script type="text/javascript" src="{{ url_for('static', filename='base.js')}}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='runninglong.js')}}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='running2weeks.js')}}"></script>
 {% endblock %}

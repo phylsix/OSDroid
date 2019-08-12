@@ -1,0 +1,31 @@
+{% extends "layout.html" %} {% block content %}
+
+<h3>running workflows > 7 days</h3>
+
+<table id="wftable" class="display">
+  <thead>
+    <tr>
+      <th></th>
+      <th>Name</th>
+      <th>Good</th>
+      <th>Site Issue</th>
+      <th>Workflow Issue</th>
+      <th>Timestamp</th>
+    </tr>
+  </thead>
+  <tfoot>
+    <tr>
+      <th></th>
+      <th>Name</th>
+      <th>Good</th>
+      <th>Site Issue</th>
+      <th>Workflow Issue</th>
+      <th>Timestamp</th>
+    </tr>
+  </tfoot>
+</table>
+
+{% endblock %} {% block scripts %}
+<script type="text/javascript" src="{{ url_for('static', filename='base.js')}}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='running7days.js')}}"></script>
+{% endblock %}

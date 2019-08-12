@@ -56,58 +56,6 @@ SERVERSIDE_TABLE_COLUMNS['running'] = [
     }
 ]
 
-SERVERSIDE_TABLE_COLUMNS['runninglong'] = [
-    {
-        "data_name": "id",
-        "column_name": "id",
-        "default": "",
-        "order": 0,
-        "searchable": False
-    },
-    {
-        "data_name": "name",
-        "column_name": "Name",
-        "default": "",
-        "order": 1,
-        "searchable": True
-    },
-    {
-        "data_name": "good",
-        "column_name": "Good",
-        "default": "",
-        "order": 2,
-        "searchable": False
-    },
-    {
-        "data_name": "acdc",
-        "column_name": "ACDC",
-        "default": "",
-        "order": 3,
-        "searchable": False
-    },
-    {
-        "data_name": "resubmit",
-        "column_name": "Resubmit",
-        "default": "",
-        "order": 4,
-        "searchable": False
-    },
-    {
-        "data_name": "timestamp",
-        "column_name": "Timestamp",
-        "default": "",
-        "order": 5,
-        "searchable": False
-    },
-    {
-        "data_name": "history",
-        "column_name": "History",
-        "default": "",
-        "order": 6,
-        "searchable": False
-    }
-]
-
 SERVERSIDE_TABLE_COLUMNS['archived'] = [
     {
         "data_name": "id",

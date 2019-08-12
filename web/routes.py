@@ -15,9 +15,17 @@ def index():
     }
     return render_template('home.html', **data_)
 
-@main.route('/runninglong')
-def runninglong():
-    return render_template('runninglong.html', page='runninglong')
+@main.route('/running2days')
+def running2days():
+    return render_template('running2days.html', page='running2days')
+
+@main.route('/running7days')
+def running7days():
+    return render_template('running7days.html', page='running7days')
+
+@main.route('/running2weeks')
+def running2weeks():
+    return render_template('running2weeks.html', page='running2weeks')
 
 @main.route('/archived')
 def archived():

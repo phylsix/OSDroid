@@ -133,7 +133,7 @@ class TableBuilder:
         for i, entry in enumerate(tabledata):
             entry['id'] = str(i)
 
-        columns = table_schemas.SERVERSIDE_TABLE_COLUMNS['runninglong']
+        columns = table_schemas.SERVERSIDE_TABLE_COLUMNS['running']
 
         return ServerSideTable(request, tabledata, columns).output_result()
 
