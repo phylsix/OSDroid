@@ -1,18 +1,21 @@
 #!/usr/bin/env python
 
-import os
-from os.path import join, dirname, abspath
+import json
 import logging
 import logging.config
+import os
 import time
 import traceback
+from os.path import abspath, dirname, join
 
 import yaml
-from monitutils import get_yamlconfig, save_json, get_workflow_from_db
-from workflowmonitexporter import buildDoc, prepareWorkflows, updateWorkflowStatusToDb, sendDoc
+from monitutils import (get_workflow_from_db, get_yamlconfig, save_json,
+                        update_doc_archive_db)
 from workflowalerts import alertWithEmail, errorEmailShooter
-from workflowprediction import makingPredictionsWithML
 from workflowlabelmaker import updateLabelArchives
+from workflowmonitexporter import (buildDoc, prepareWorkflows, sendDoc,
+                                   updateWorkflowStatusToDb)
+from workflowprediction import makingPredictionsWithML
 
 LOGDIR = join(dirname(abspath(__file__)), 'Logs')
 CRED_FILE_PATH = join(dirname(abspath(__file__)), 'config/credential.yml')
@@ -80,6 +83,9 @@ def main():
         _wfnames = [w.name for w in archivedwfs]
         logger.info("Passing {} workflows for label making..".format(len(_wfnames)))
         updateLabelArchives(_wfnames)
+
+        # archive docs:
+        update_doc_archive_db(config, json.dumps(totaldocs))
 
     except Exception:
         logger.exception(f"Exception encountered, sending emails to {str(recipients)}")

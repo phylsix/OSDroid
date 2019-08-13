@@ -159,6 +159,43 @@ def create_label_archive_db(config):
 
 # -----------------------------------------------------------------------------
 
+def create_doc_archive_db(config):
+
+    username_, password_, dbname_ = config['mysql']
+    conn = pymysql.connect(host='localhost',
+                           user=username_,
+                           password=password_,
+                           db=dbname_)
+    try:
+        with conn.cursor() as cursor:
+            sql = """\
+                create table if not exists OSDroidDB.DocsOneMonthArchive (
+                    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    document TEXT,
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );"""
+            cursor.execute(sql)
+
+        conn.commit()
+        print("Successfully created table OSDroidDB.DocsOneMonthArchive !")
+
+        with conn.cursor() as cursor:
+            sql = """\
+                CREATE EVENT OSDroidDB.DocsCleanOneMonth
+                ON SCHEDULE EVERY 24 HOUR
+                DO
+                DELETE FROM OSDroidDB.DocsOneMonthArchive
+                WHERE TIMESTAMPDIFF(DAY, timestamp, NOW()) > 30;"""
+            cursor.execute(sql)
+
+        conn.commit()
+        print("Successfully created event OSDroidDB.DocsCleanOneMonth !")
+
+    finally:
+        conn.close()
+
+# -----------------------------------------------------------------------------
+
 def update_prediction_history_db(config, values):
 
     username_, password_, dbname_ = config['mysql']
@@ -199,7 +236,25 @@ def update_label_archive_db(config, values):
 
 # -----------------------------------------------------------------------------
 
+def update_doc_archive_db(config, value):
+
+    username_, password_, dbname_ = config['mysql']
+    conn = pymysql.connect(host='localhost',
+                           user=username_,
+                           password=password_,
+                           db=dbname_)
+    try:
+        with conn.cursor() as cursor:
+            sql = """INSERT INTO OSDroidDB.DocsOneMonthArchive (document) VALUES (%s);"""
+            cursor.execute(sql, value)
+        conn.commit()
+    finally:
+        conn.close()
+
+# -----------------------------------------------------------------------------
+
 def get_labeled_workflows(config):
+
     username_, password_, dbname_ = config['mysql']
     conn = pymysql.connect(host='localhost',
                            user=username_,

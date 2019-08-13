@@ -51,8 +51,9 @@ A few more configuration files are needed to get it rolling.
 
 3. `models/xgb_optimized.model` for running workflow inference.
 
-4. `OSDroidDB` is the MySQL database storing workflow prediction history and labels.
-   Two tables need to be created for each.
+4. `OSDroidDB` is the local MySQL database storing workflow prediction history, labels and short-term document archive.
+   Three tables need to be created for each.
+   **PredictionHistory**
    ```sql
    CREATE TABLE IF NOT EXISTS OSDroidDB.PredictionHistory (
      hid BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -63,10 +64,21 @@ A few more configuration files are needed to get it rolling.
      timestamp TIMESTAMP
    );
    ```
+
+   **LabelArchive**
    ```sql
    CREATE TABLE IF NOT EXISTS OSDroidDB.LabelArchive (
      name VARCHAR(255) NOT NULL PRIMARY KEY,
      label INT
+   );
+   ```
+
+   **DocsOneMonthArchive**
+   ```sql
+   CREATE TABLE IF NOT EXISTS OSDroidDB.DocsOneMonthArchive (
+     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+     document TEXT,
+     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
    );
    ```
 
