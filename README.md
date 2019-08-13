@@ -77,7 +77,7 @@ A few more configuration files are needed to get it rolling.
    ```sql
    CREATE TABLE IF NOT EXISTS OSDroidDB.DocsOneMonthArchive (
      id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-     document TEXT,
+     document LONGTEXT,
      timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
    );
    ```

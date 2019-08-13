@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 import json
+from collections import defaultdict
 from datetime import datetime
-from os.path import join, dirname, abspath
+from os.path import abspath, dirname, join
 
 import pymysql
 import yaml
+
 from .serverside import table_schemas
 from .serverside.serverside_table import ServerSideTable
-
 
 CONFIG_FILE_PATH = join(dirname(abspath(__file__)), "../config/config.yml")
 
@@ -186,3 +187,41 @@ class TableBuilder:
         for record in rowinfo:
             record['timestamp'] = record['timestamp'].strftime("%Y-%m-%d %H:%M:%S")
         return rowinfo
+
+
+class DocBuilder:
+    def __init__(self):
+        self._config = yaml.load(open(CONFIG_FILE_PATH).read(), Loader=yaml.FullLoader)['mysql']
+        self._doc = None
+        self._ts = None
+
+    @property
+    def doc(self):
+        if not self._doc:
+            db = Database(*self._config)
+            sql = "SELECT timestamp, document FROM DocsOneMonthArchive ORDER BY timestamp DESC;"
+            db.execute(sql)
+            rawdata = db.fetchone()
+            self._doc = json.loads(rawdata['document'])
+            self._ts = rawdata['timestamp']
+        return {'data': self._doc, 'timestamp': self._ts}
+
+    @property
+    def updatetime(self):
+        db = Database(*self._config)
+        db.execute('SELECT MAX(timestamp) FROM DocsOneMonthArchive;')
+        return db.fetchone()['MAX(timestamp)'].strftime("%Y-%m-%d %H:%M:%S")
+
+    def totalerror_per_site(self):
+        cnt = defaultdict(int)
+
+        for doc in self.doc.get('data', []):
+            for tsk in doc.get('tasks', []):
+                for se in tsk.get('siteErrors', []):
+                    cnt[se['site']] += se['counts']
+
+        data_ = []
+        for k, v in cnt.items():
+            data_.append({'site': k, 'errors': v})
+
+        return {'data': data_, 'timestamp': self._ts}

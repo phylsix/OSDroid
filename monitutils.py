@@ -171,7 +171,7 @@ def create_doc_archive_db(config):
             sql = """\
                 create table if not exists OSDroidDB.DocsOneMonthArchive (
                     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                    document TEXT,
+                    document LONGTEXT,
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );"""
             cursor.execute(sql)

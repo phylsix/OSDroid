@@ -34,18 +34,16 @@ rootlogger.addFilter(No502WarningFilter())
 
 def main():
 
-    with open(LOGGING_CONFIG, 'r') as f:
-        config = yaml.safe_load(f.read())
-        logging.config.dictConfig(config)
+    logging.config.dictConfig(get_yamlconfig(LOGGING_CONFIG))
+    cred = get_yamlconfig(CRED_FILE_PATH)
+    localconfig = get_yamlconfig(CONFIG_FILE_PATH)
 
     if not os.path.isdir(LOGDIR):
         os.makedirs(LOGDIR)
 
-    cred = get_yamlconfig(CRED_FILE_PATH)
-    recipients = get_yamlconfig(CONFIG_FILE_PATH).get('alert_recipients', [])
+    recipients = localconfig.get('alert_recipients', [])
 
     try:
-
         wfpacks = prepareWorkflows(CONFIG_FILE_PATH, test=False)
         totaldocs = []
         for pack in wfpacks:
@@ -60,14 +58,13 @@ def main():
             alertWithEmail(docs, recipients)
 
             # backup doc
-            bkpfn = join(LOGDIR, 'toSendDoc_{}'.format(time.strftime('%y%m%d-%H%M%S')))
-            bkpdoc = save_json(docs, filename=bkpfn, gzipped=True)
-            logger.info('Document backuped at: {}'.format(bkpdoc))
+            # bkpfn = join(LOGDIR, 'toSendDoc_{}'.format(time.strftime('%y%m%d-%H%M%S')))
+            # bkpdoc = save_json(docs, filename=bkpfn, gzipped=True)
+            # logger.info('Document backuped at: {}'.format(bkpdoc))
 
             # backup failure msg
-            faildocfn = join(
-                LOGDIR, 'amqFailMsg_{}'.format(time.strftime('%y%m%d-%H%M%S')))
             if len(failures):
+                faildocfn = join(LOGDIR, 'amqFailMsg_{}'.format(time.strftime('%y%m%d-%H%M%S')))
                 faildoc = save_json(failures, filename=faildocfn, gzipped=True)
                 logger.info('Failed message saved at: {}'.format(faildoc))
 
@@ -85,7 +82,7 @@ def main():
         updateLabelArchives(_wfnames)
 
         # archive docs:
-        update_doc_archive_db(config, json.dumps(totaldocs))
+        update_doc_archive_db(localconfig, json.dumps(totaldocs))
 
     except Exception:
         logger.exception(f"Exception encountered, sending emails to {str(recipients)}")
@@ -93,10 +90,7 @@ def main():
 
 
 def test():
-    with open(LOGGING_CONFIG, 'r') as f:
-        config = yaml.safe_load(f.read())
-        logging.config.dictConfig(config)
-
+    logging.config.dictConfig(get_yamlconfig(LOGGING_CONFIG))
     logger = logging.getLogger("testworkflowmonitLogger")
 
     if not os.path.isdir(LOGDIR):

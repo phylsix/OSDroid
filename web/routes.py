@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-from flask import Blueprint, render_template
-from .tablebuilder import TableBuilder
+from flask import Blueprint, request, render_template, jsonify
+from .tablebuilder import TableBuilder, DocBuilder
 
+###############################################################################
 
 main = Blueprint('main', __name__, url_prefix='')
 
@@ -44,3 +45,64 @@ def everything():
         "page": 'everything',
     }
     return render_template('everything.html', **data_)
+
+@main.route('/siteerrors')
+def siteerrors():
+    docbuilder_ = DocBuilder()
+    data_ = {
+        "updatetime": docbuilder_.updatetime,
+        "page": 'siteerrors',
+    }
+    return render_template('siteerrors.html', **data_)
+
+
+###############################################################################
+
+tables = Blueprint('tables', __name__, url_prefix='/tables')
+
+
+@tables.route("running_table", methods=['GET'])
+def running_table_content():
+    return jsonify(TableBuilder().collect_running(request))
+
+@tables.route("running2days_table", methods=['GET'])
+def running2days_table_content():
+    return jsonify(TableBuilder().collect_running_long(request))
+
+@tables.route("running7days_table", methods=['GET'])
+def running7days_table_content():
+    return jsonify(TableBuilder().collect_running_long(request, days=7))
+
+@tables.route("running2weeks_table", methods=['GET'])
+def running2weeks_table_content():
+    return jsonify(TableBuilder().collect_running_long(request, days=14))
+
+@tables.route("archived_table", methods=['GET'])
+def archived_table_content():
+    return jsonify(TableBuilder().collect_archived(request))
+
+@tables.route("everything_table", methods=['GET'])
+def everything_table_content():
+    return jsonify(TableBuilder().collect_everything(request))
+
+
+###############################################################################
+
+predhistory = Blueprint('predhistory', __name__, url_prefix='/predhistory')
+
+@predhistory.route('<wfname>', methods=['GET'])
+def workflow_history(wfname):
+    return jsonify(TableBuilder().get_workflow_history(wfname))
+
+###############################################################################
+
+docs = Blueprint('docs', __name__, url_prefix='/docs')
+
+@docs.route('site_errors', methods=['GET'])
+def site_errors():
+    return jsonify(DocBuilder().totalerror_per_site())
+
+@docs.route('/lastdoc')
+def lastdoc():
+    return jsonify(DocBuilder().doc)
+
