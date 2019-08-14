@@ -19,6 +19,7 @@ $(document).ready(function() {
       { data: "Timestamp" }
     ],
     order: [[5, "desc"]], //asc
+    pageLength: 50,
 
     rowCallback: function(row, data) {
       $(row)

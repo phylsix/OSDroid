@@ -26,6 +26,7 @@ $(document).ready(function() {
       { data: "Timestamp" }
     ],
     order: [[7, "desc"]], // asc
+    pageLength: 50,
 
     rowCallback: function(row, data, index) {
       // actual labels
