@@ -1,7 +1,11 @@
+a {
+  text-decoration: none;
+}
+
 .banner {
   background-color: lightblue;
   color: white;
-  padding: 8px 5px;
+  padding: 8px 5px 0px 5px;
 }
 
 .body-content {
@@ -15,4 +19,10 @@ td.details-control {
 
 tr.shown td.details-control {
   background: url("./img/details_close.png") no-repeat center center;
+}
+
+.active {
+  background-color: white;
+  color: black;
+  font-weight: bold;
 }

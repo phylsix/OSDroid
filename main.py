@@ -1,18 +1,21 @@
 #!/usr/bin/env python
 
-import os
-from os.path import join, dirname, abspath
+import json
 import logging
 import logging.config
+import os
 import time
 import traceback
+from os.path import abspath, dirname, join
 
 import yaml
-from monitutils import get_yamlconfig, save_json, get_workflow_from_db
-from workflowmonitexporter import buildDoc, prepareWorkflows, updateWorkflowStatusToDb, sendDoc
+from monitutils import (get_workflow_from_db, get_yamlconfig, save_json,
+                        update_doc_archive_db)
 from workflowalerts import alertWithEmail, errorEmailShooter
-from workflowprediction import makingPredictionsWithML
 from workflowlabelmaker import updateLabelArchives
+from workflowmonitexporter import (buildDoc, prepareWorkflows, sendDoc,
+                                   updateWorkflowStatusToDb)
+from workflowprediction import makingPredictionsWithML
 
 LOGDIR = join(dirname(abspath(__file__)), 'Logs')
 CRED_FILE_PATH = join(dirname(abspath(__file__)), 'config/credential.yml')
@@ -31,18 +34,16 @@ rootlogger.addFilter(No502WarningFilter())
 
 def main():
 
-    with open(LOGGING_CONFIG, 'r') as f:
-        config = yaml.safe_load(f.read())
-        logging.config.dictConfig(config)
+    logging.config.dictConfig(get_yamlconfig(LOGGING_CONFIG))
+    cred = get_yamlconfig(CRED_FILE_PATH)
+    localconfig = get_yamlconfig(CONFIG_FILE_PATH)
 
     if not os.path.isdir(LOGDIR):
         os.makedirs(LOGDIR)
 
-    cred = get_yamlconfig(CRED_FILE_PATH)
-    recipients = get_yamlconfig(CONFIG_FILE_PATH).get('alert_recipients', [])
+    recipients = localconfig.get('alert_recipients', [])
 
     try:
-
         wfpacks = prepareWorkflows(CONFIG_FILE_PATH, test=False)
         totaldocs = []
         for pack in wfpacks:
@@ -57,14 +58,13 @@ def main():
             alertWithEmail(docs, recipients)
 
             # backup doc
-            bkpfn = join(LOGDIR, 'toSendDoc_{}'.format(time.strftime('%y%m%d-%H%M%S')))
-            bkpdoc = save_json(docs, filename=bkpfn, gzipped=True)
-            logger.info('Document backuped at: {}'.format(bkpdoc))
+            # bkpfn = join(LOGDIR, 'toSendDoc_{}'.format(time.strftime('%y%m%d-%H%M%S')))
+            # bkpdoc = save_json(docs, filename=bkpfn, gzipped=True)
+            # logger.info('Document backuped at: {}'.format(bkpdoc))
 
             # backup failure msg
-            faildocfn = join(
-                LOGDIR, 'amqFailMsg_{}'.format(time.strftime('%y%m%d-%H%M%S')))
             if len(failures):
+                faildocfn = join(LOGDIR, 'amqFailMsg_{}'.format(time.strftime('%y%m%d-%H%M%S')))
                 faildoc = save_json(failures, filename=faildocfn, gzipped=True)
                 logger.info('Failed message saved at: {}'.format(faildoc))
 
@@ -81,16 +81,17 @@ def main():
         logger.info("Passing {} workflows for label making..".format(len(_wfnames)))
         updateLabelArchives(_wfnames)
 
+        # archive docs:
+        docs_to_insert = [(doc['name'], json.dumps(doc)) for doc in totaldocs]
+        update_doc_archive_db(localconfig, docs_to_insert)
+
     except Exception:
         logger.exception(f"Exception encountered, sending emails to {str(recipients)}")
         errorEmailShooter(traceback.format_exc(), recipients)
 
 
 def test():
-    with open(LOGGING_CONFIG, 'r') as f:
-        config = yaml.safe_load(f.read())
-        logging.config.dictConfig(config)
-
+    logging.config.dictConfig(get_yamlconfig(LOGGING_CONFIG))
     logger = logging.getLogger("testworkflowmonitLogger")
 
     if not os.path.isdir(LOGDIR):

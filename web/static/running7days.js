@@ -4,7 +4,7 @@ $(document).ready(function() {
     bServerSide: true,
     sPaginationType: "full_numbers",
     bjQueryUI: true,
-    sAjaxSource: "/tables/running_table",
+    sAjaxSource: "/tables/running7days_table",
     columns: [
       {
         className: "details-control",

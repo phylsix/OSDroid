@@ -1,0 +1,25 @@
+{% extends "layout.html" %} {% block content %}
+
+<p>Last update at {{ updatetime }} CEST</p>
+
+<table id="siteerrorTable" class="display" style="width: 30%;">
+  <thead>
+    <tr>
+      <th>Site</th>
+      <th>TotalError</th>
+    </tr>
+  </thead>
+  <tfoot>
+    <tr>
+      <th>Site</th>
+      <th>TotalError</th>
+    </tr>
+  </tfoot>
+</table>
+
+{% endblock %} {% block scripts %}
+<script
+  type="text/javascript"
+  src="{{ url_for('static', filename='siteerrors.js')}}"
+></script>
+{% endblock %}

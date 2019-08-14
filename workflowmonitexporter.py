@@ -193,12 +193,13 @@ def prepareWorkflows(configpath, minfailurerate=0., test=False, batchsize=400):
 
 # -----------------------------------------------------------------------------
 
-def buildDoc(source, doconcurrent=True):
+def buildDoc(source, doconcurrent=True, timeout=300):
     """
     Given a list of workflow packs, returns a list of documents (each for one workflow)
 
     :param list source: a list of workflow packs (tuple)
     :param bool doconcurrent: default True. If True, concurrently execute jobs
+    :param float timeout: default 300. timeout limit/seconds for each job when launching jobs parallelly
     :returns: list of documents
     :rtype: list
     """
@@ -211,7 +212,7 @@ def buildDoc(source, doconcurrent=True):
         with concurrent.futures.ThreadPoolExecutor(
                 max_workers=len(source)) as executor:
             futures = {executor.submit(do_work, item): item for item in source}
-            for future in concurrent.futures.as_completed(futures):
+            for future in concurrent.futures.as_completed(futures, timeout=timeout):
                 wfname = futures[future][0].name
                 try:
                     res = future.result()

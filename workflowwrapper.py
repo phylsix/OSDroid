@@ -146,6 +146,10 @@ class Workflow:
 
         return frate
 
+    @property
+    def failureRate(self):
+        return self.get_failure_rate()
+
     def get_errors(self):
         output = {}
 
@@ -191,6 +195,13 @@ class Workflow:
 
         return output
 
+    def get_total_estimated_jobs(self):
+        return self.get_reqdetail().get(self.name_, {}).get("TotalEstimatedJobs", 0)
+
+    @property
+    def totalEstimatedJobs(self):
+        return self.get_total_estimated_jobs()
+
 
 def test():
     import time
@@ -215,6 +226,7 @@ def test():
     startTime = time.time()
     print("[errors]")
     pprint(wf0.get_errors())
+    print("[total estimated jobs]", wf0.totalEstimatedJobs)
     print("----- > took", time.time() - startTime, "s")
 
     print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
@@ -234,6 +246,7 @@ def test():
     startTime = time.time()
     print("[errors]")
     pprint(wf1.get_errors())
+    print("[total estimated jobs]", wf1.totalEstimatedJobs)
     print("----- > took", time.time() - startTime, "s")
 
     print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
