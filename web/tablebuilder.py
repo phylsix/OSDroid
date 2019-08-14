@@ -192,30 +192,35 @@ class TableBuilder:
 class DocBuilder:
     def __init__(self):
         self._config = yaml.load(open(CONFIG_FILE_PATH).read(), Loader=yaml.FullLoader)['mysql']
-        self._doc = None
-        self._ts = None
+        self._lastdoc = None
+        self._lasttimestamp = None
 
     @property
-    def doc(self):
-        if not self._doc:
+    def lastdoc(self):
+        if not self._lastdoc:
             db = Database(*self._config)
-            sql = "SELECT timestamp, document FROM DocsOneMonthArchive ORDER BY timestamp DESC;"
-            db.execute(sql)
-            rawdata = db.fetchone()
-            self._doc = json.loads(rawdata['document'])
-            self._ts = rawdata['timestamp']
-        return {'data': self._doc, 'timestamp': self._ts}
+            sql = """\
+                SELECT document FROM DocsOneMonthArchive
+                WHERE timestamp=(
+                    SELECT MAX(timestamp)
+                    FROM DocsOneMonthArchive
+                );"""
+            rawdata = db.query(sql)
+            self._lastdoc = [json.loads(d['document']) for d in rawdata]
+        return self._lastdoc
 
     @property
     def updatetime(self):
-        db = Database(*self._config)
-        db.execute('SELECT MAX(timestamp) FROM DocsOneMonthArchive;')
-        return db.fetchone()['MAX(timestamp)'].strftime("%Y-%m-%d %H:%M:%S")
+        if not self._lasttimestamp:
+            db = Database(*self._config)
+            db.execute('SELECT MAX(timestamp) FROM DocsOneMonthArchive;')
+            self._lasttimestamp = db.fetchone()['MAX(timestamp)'].strftime("%Y-%m-%d %H:%M:%S")
+        return self._lasttimestamp
 
     def totalerror_per_site(self):
         cnt = defaultdict(int)
 
-        for doc in self.doc.get('data', []):
+        for doc in self.lastdoc:
             for tsk in doc.get('tasks', []):
                 for se in tsk.get('siteErrors', []):
                     cnt[se['site']] += se['counts']
@@ -224,4 +229,4 @@ class DocBuilder:
         for k, v in cnt.items():
             data_.append({'site': k, 'errors': v})
 
-        return {'data': data_, 'timestamp': self._ts}
+        return {'data': data_, 'timestamp': self.updatetime}

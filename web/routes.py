@@ -104,5 +104,5 @@ def site_errors():
 
 @docs.route('/lastdoc')
 def lastdoc():
-    return jsonify(DocBuilder().doc)
+    return jsonify(DocBuilder().lastdoc)
 
