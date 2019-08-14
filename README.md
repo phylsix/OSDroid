@@ -53,6 +53,7 @@ A few more configuration files are needed to get it rolling.
 
 4. `OSDroidDB` is the local MySQL database storing workflow prediction history, labels and short-term document archive.
    Three tables need to be created for each.
+
    **PredictionHistory**
    ```sql
    CREATE TABLE IF NOT EXISTS OSDroidDB.PredictionHistory (
@@ -77,6 +78,7 @@ A few more configuration files are needed to get it rolling.
    ```sql
    CREATE TABLE IF NOT EXISTS OSDroidDB.DocsOneMonthArchive (
      id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+     name VARCHAR(255) NOT NULL,
      document LONGTEXT,
      timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
    );

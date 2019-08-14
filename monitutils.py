@@ -171,6 +171,7 @@ def create_doc_archive_db(config):
             sql = """\
                 create table if not exists OSDroidDB.DocsOneMonthArchive (
                     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(255),
                     document LONGTEXT,
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );"""
@@ -236,17 +237,19 @@ def update_label_archive_db(config, values):
 
 # -----------------------------------------------------------------------------
 
-def update_doc_archive_db(config, value):
+def update_doc_archive_db(config, values):
 
     username_, password_, dbname_ = config['mysql']
     conn = pymysql.connect(host='localhost',
                            user=username_,
                            password=password_,
                            db=dbname_)
+    if not isinstance(values, list):
+        values = [values,]
     try:
         with conn.cursor() as cursor:
-            sql = """INSERT INTO OSDroidDB.DocsOneMonthArchive (document) VALUES (%s);"""
-            cursor.execute(sql, value)
+            sql = """INSERT INTO OSDroidDB.DocsOneMonthArchive (name, document) VALUES (%s, %s);"""
+            cursor.executemany(sql, values)
         conn.commit()
     finally:
         conn.close()

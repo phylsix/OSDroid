@@ -82,7 +82,8 @@ def main():
         updateLabelArchives(_wfnames)
 
         # archive docs:
-        update_doc_archive_db(localconfig, json.dumps(totaldocs))
+        docs_to_insert = [(doc['name'], json.dumps(doc)) for doc in totaldocs]
+        update_doc_archive_db(localconfig, docs_to_insert)
 
     except Exception:
         logger.exception(f"Exception encountered, sending emails to {str(recipients)}")
