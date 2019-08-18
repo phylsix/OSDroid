@@ -230,3 +230,17 @@ class DocBuilder:
             data_.append({'site': k, 'errors': v})
 
         return {'data': data_, 'timestamp': self.updatetime}
+
+    def get_error_report(self, name):
+        db = Database(*self._config)
+        sql = """\
+            SELECT document FROM DocsOneMonthArchive
+            WHERE name=%s AND timestamp=(
+                SELECT MAX(timestamp)
+                FROM DocsOneMonthArchive
+            );"""
+        rawdata = db.query(sql, (name,))
+        if rawdata:
+            return json.loads(rawdata[0]['document'])
+        else:
+            return {}

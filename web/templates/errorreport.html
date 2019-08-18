@@ -1,0 +1,47 @@
+{% extends "layout.html" %} {% block content %}
+
+<p>Last update at {{ updatetime }} CEST</p>
+<h2>
+  WorkflowName: <span id="wfId">{{ name }}</span>
+</h2>
+
+<h3>Basic Information</h3>
+<table id="_summaryTable" class="display" style="width: 30%;">
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Status</th>
+      <th>TotalError</th>
+      <th>FailureRate</th>
+    </tr>
+  </thead>
+</table>
+
+<h3>Failure Keywords</h3>
+<div id="_failurekeywords"></div>
+
+<h3>Transitions</h3>
+<table id="_transitionTable" class="display" style="width: 60%;">
+  <thead>
+    <tr>
+      <th>DN</th>
+      <th>Status</th>
+      <th>UpdateTime</th>
+    </tr>
+  </thead>
+</table>
+
+<h3>Tasks</h3>
+<div id="_taskTable"></div>
+
+{% endblock %} {% block scripts %}
+
+<script
+  type="text/javascript"
+  src="{{ url_for('static', filename='nested.tables.min.js')}}"
+></script>
+<script
+  type="text/javascript"
+  src="{{ url_for('static', filename='errorreport.js')}}"
+></script>
+{% endblock %}

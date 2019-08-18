@@ -1,11 +1,10 @@
-schedule
 pyyaml
 numpy
 pandas
 xgboost
 CMSMonitoring
 cx_Oracle
-cmstoolbox
+git+https://github.com/CMSCompOps/OpsSpace.git
 flask
 flask_compress
 pymysql

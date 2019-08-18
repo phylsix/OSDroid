@@ -8,10 +8,10 @@ Predict running workflows' actions. Currently running at vocms0116.
 
 ## How to run
 
-After environments set up and necessary configuration pieces added,
+After environments set up and necessary configuration pieces added, set up a crontab task to run periodically `main.py`.
 
+To start the frontend instance,
 ```bash
-./startMonit.sh # this starts monitoring in the background
 cd web/
 ./quickStart.sh # this starts Flask basic server on port 8020 (subject to change)
 ```
