@@ -55,6 +55,14 @@ def siteerrors():
     }
     return render_template('siteerrors.html', **data_)
 
+@main.route('/errorreport/<wfname>')
+def errorreport(wfname):
+    docbuilder_ = DocBuilder()
+    data_ = {
+        "updatetime": docbuilder_.updatetime,
+        "name": wfname,
+    }
+    return render_template('errorreport.html', **data_)
 
 ###############################################################################
 
@@ -106,3 +114,6 @@ def site_errors():
 def lastdoc():
     return jsonify(DocBuilder().lastdoc)
 
+@docs.route('/errorreport/<wfname>', methods=['GET'])
+def workflow_errorreport(wfname):
+    return jsonify(DocBuilder().get_error_report(wfname))

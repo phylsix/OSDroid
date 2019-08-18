@@ -28,7 +28,10 @@ $(document).ready(function() {
           data.Name +
             ' | <a href="https://cms-unified.web.cern.ch/cms-unified//report/' +
             data.Name +
-            '" style="font-size: small;" target="_blank">unified</a>'
+            '" style="font-size: small;" target="_blank">Unified</a>' +
+            ' | <a href="errorreport/' +
+            data.Name +
+            '" style="font-size: small;" target="_blank">OSDroidErrorReport</a>'
         );
     }
   });
