@@ -217,6 +217,12 @@ class DocBuilder:
             self._lasttimestamp = db.fetchone()['MAX(timestamp)'].strftime("%Y-%m-%d %H:%M:%S")
         return self._lasttimestamp
 
+    def workflow_last_updatetime(self, name):
+        db = Database(*self._config)
+        sql = """SELECT MAX(timestamp) FROM DocsOneMonthArchive WHERE name=%s;"""
+        db.execute(sql, (name,))
+        return db.fetchone()['MAX(timestamp)'].strftime("%Y-%m-%d %H:%M:%S")
+
     def totalerror_per_site(self):
         cnt = defaultdict(int)
 
@@ -235,12 +241,10 @@ class DocBuilder:
         db = Database(*self._config)
         sql = """\
             SELECT document FROM DocsOneMonthArchive
-            WHERE name=%s AND timestamp=(
-                SELECT MAX(timestamp)
-                FROM DocsOneMonthArchive
-            );"""
-        rawdata = db.query(sql, (name,))
+            WHERE name = %s ORDER BY timestamp DESC; """
+        db.execute(sql, (name,))
+        rawdata = db.fetchone()
         if rawdata:
-            return json.loads(rawdata[0]['document'])
+            return json.loads(rawdata['document'])
         else:
-            return {}
+            return None
