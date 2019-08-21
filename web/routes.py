@@ -59,7 +59,7 @@ def siteerrors():
 def errorreport(wfname):
     docbuilder_ = DocBuilder()
     data_ = {
-        "updatetime": docbuilder_.updatetime,
+        "updatetime": docbuilder_.workflow_last_updatetime(wfname),
         "name": wfname,
     }
     return render_template('errorreport.html', **data_)
@@ -116,4 +116,8 @@ def lastdoc():
 
 @docs.route('/errorreport/<wfname>', methods=['GET'])
 def workflow_errorreport(wfname):
-    return jsonify(DocBuilder().get_error_report(wfname))
+    report = DocBuilder().get_error_report(wfname)
+    response = jsonify(report)
+    if report is None:
+        response.status_code = 404
+    return response

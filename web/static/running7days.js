@@ -20,6 +20,7 @@ $(document).ready(function() {
     ],
     order: [[5, "desc"]], //asc
     pageLength: 50,
+    lengthMenu: [[50, 100, 150, 200, -1], [50, 100, 150, 200, "All"]],
 
     rowCallback: function(row, data) {
       $(row)

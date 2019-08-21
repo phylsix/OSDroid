@@ -102,5 +102,7 @@ $(document).ready(function() {
       taskNestedSettings
     );
     taskTable.initializeTableHierarchy();
+  }).fail(function() {
+    alert("No error report for\n"+wfid+"\navailable!");
   });
 });

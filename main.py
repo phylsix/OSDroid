@@ -47,28 +47,32 @@ def main():
         wfpacks = prepareWorkflows(CONFIG_FILE_PATH, test=False)
         totaldocs = []
         for pack in wfpacks:
-            docs = buildDoc(pack, doconcurrent=True)
-            totaldocs.extend(docs)
+            try:
+                docs = buildDoc(pack, doconcurrent=True)
+                totaldocs.extend(docs)
 
-            # update status in local db
-            updateWorkflowStatusToDb(CONFIG_FILE_PATH, docs)
-            # send to CERN MONIT
-            failures = sendDoc(cred, docs)
-            # alerts
-            alertWithEmail(docs, recipients)
+                # update status in local db
+                updateWorkflowStatusToDb(CONFIG_FILE_PATH, docs)
+                # send to CERN MONIT
+                failures = sendDoc(cred, docs)
+                # alerts
+                alertWithEmail(docs, recipients)
 
-            # backup doc
-            # bkpfn = join(LOGDIR, 'toSendDoc_{}'.format(time.strftime('%y%m%d-%H%M%S')))
-            # bkpdoc = save_json(docs, filename=bkpfn, gzipped=True)
-            # logger.info('Document backuped at: {}'.format(bkpdoc))
+                # backup doc
+                # bkpfn = join(LOGDIR, 'toSendDoc_{}'.format(time.strftime('%y%m%d-%H%M%S')))
+                # bkpdoc = save_json(docs, filename=bkpfn, gzipped=True)
+                # logger.info('Document backuped at: {}'.format(bkpdoc))
 
-            # backup failure msg
-            if len(failures):
-                faildocfn = join(LOGDIR, 'amqFailMsg_{}'.format(time.strftime('%y%m%d-%H%M%S')))
-                faildoc = save_json(failures, filename=faildocfn, gzipped=True)
-                logger.info('Failed message saved at: {}'.format(faildoc))
+                # backup failure msg
+                if len(failures):
+                    faildocfn = join(LOGDIR, 'amqFailMsg_{}'.format(time.strftime('%y%m%d-%H%M%S')))
+                    faildoc = save_json(failures, filename=faildocfn, gzipped=True)
+                    logger.info('Failed message saved at: {}'.format(faildoc))
 
-            logger.info('Number of updated workflows: {}'.format(len(docs)))
+                logger.info('Number of updated workflows: {}'.format(len(docs)))
+            except Exception:
+                logger.exception(f"Exception encountered, sending emails to {str(recipients)}")
+                errorEmailShooter(traceback.format_exc(), recipients)
 
         # predictions
         logger.info("Making predicions for {} workflows..".format(len(totaldocs)))

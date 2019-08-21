@@ -27,6 +27,7 @@ $(document).ready(function() {
     ],
     order: [[7, "desc"]], // asc
     pageLength: 50,
+    lengthMenu: [[50, 100, 150, 200, 250], [50, 100, 150, 200, 250]],
 
     rowCallback: function(row, data, index) {
       // actual labels
