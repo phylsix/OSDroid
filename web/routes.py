@@ -55,13 +55,17 @@ def siteerrors():
     }
     return render_template('siteerrors.html', **data_)
 
-@main.route('/errorreport/<wfname>')
-def errorreport(wfname):
-    docbuilder_ = DocBuilder()
-    data_ = {
-        "updatetime": docbuilder_.workflow_last_updatetime(wfname),
-        "name": wfname,
-    }
+@main.route('/errorreport')
+def errorreport():
+    wfname = request.args.get('name', default='', type=str)
+    timestamp = request.args.get('timestamp', default='', type=str)
+    data_ = {"name": wfname,}
+    if timestamp:
+        data_["updatetime"] = timestamp
+    else:
+        docbuilder_ = DocBuilder()
+        data_['updatetime'] = docbuilder_.workflow_last_updatetime(wfname)
+
     return render_template('errorreport.html', **data_)
 
 ###############################################################################
@@ -114,10 +118,16 @@ def site_errors():
 def lastdoc():
     return jsonify(DocBuilder().lastdoc)
 
-@docs.route('/errorreport/<wfname>', methods=['GET'])
-def workflow_errorreport(wfname):
-    report = DocBuilder().get_error_report(wfname)
+@docs.route('/errorreport', methods=['GET'])
+def workflow_errorreport():
+    wfname = request.args.get('name', default='', type=str)
+    timestamp = request.args.get('timestamp', default='', type=str)
+    report = DocBuilder().get_error_report(wfname, timestamp=timestamp)
     response = jsonify(report)
     if report is None:
         response.status_code = 404
     return response
+
+@docs.route('/timestamps/<wfname>', methods=['GET'])
+def errorreport_timestamps(wfname):
+    return jsonify(DocBuilder().get_history_timestamps(wfname))

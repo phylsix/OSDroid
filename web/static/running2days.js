@@ -30,7 +30,7 @@ $(document).ready(function() {
             ' | <a href="https://cms-unified.web.cern.ch/cms-unified//report/' +
             data.Name +
             '" style="font-size: small;" target="_blank">Unified</a>' +
-            ' | <a href="errorreport/' +
+            ' | <a href="errorreport?name=' +
             data.Name +
             '" style="font-size: small;" target="_blank">OSDroidErrorReport</a>'
         );

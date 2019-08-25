@@ -34,3 +34,13 @@ tr.shown td.details-control {
   margin: 2px;
   border-radius: 4px;
 }
+
+.timestamplabel {
+  color: darkgoldenrod;
+  font-size: 12px;
+  line-height: 1.6em;
+  padding: 1px;
+  margin: 2px;
+  border-radius: 4px;
+  border: solid 1px burlywood;
+}
