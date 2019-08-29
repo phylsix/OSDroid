@@ -112,16 +112,23 @@ $(document).ready(function() {
     $("#_history").html(rawdata.map(ts =>
       "<a href='errorreport?name="+wfid+"&timestamp="+ts+"' class='timestamplabel'>"+ts+"</a>"
       ).join(" "));
+
+    $(".timestamplabel").hover(
+      function(){$(this).css("color", "green");},
+      function(){$(this).css("color", "darkgoldenrod");}
+    );
+
     // highlight the current timestamp
     $("#_history").children().each(function(){
       if ($(this).html() == $("#ts").html()) {
           $(this).css("color", "white")
                  .css("background", "darkgoldenrod");
+          $(this).hover(
+            function(){$(this).css("font-weight", "bold").css("color", "white");},
+            function(){$(this).css("font-weight", "normal").css("color", "white")}
+          );
       }
     });
-    $(".timestamplabel").hover(
-      function(){$(this).css("color", "green");},
-      function() {$(this).css("color", "darkgoldenrod");}
-    );
+
   });
 });
