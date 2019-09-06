@@ -5,14 +5,23 @@ import pymysql
 
 
 class Database:
-    def __init__(self, user, password, dbname):
-        self._conn = pymysql.connect(
-            host='localhost',
-            user=user,
-            password=password,
-            db=dbname,
-            cursorclass=pymysql.cursors.DictCursor
-        )
+    def __init__(self, user, password, dbname, dictcursor=True):
+        if dictcursor:
+            self._conn = pymysql.connect(
+                host='localhost',
+                user=user,
+                password=password,
+                db=dbname,
+                cursorclass=pymysql.cursors.DictCursor
+            )
+        else:
+            self._conn = pymysql.connect(
+                host='localhost',
+                user=user,
+                password=password,
+                db=dbname,
+                cursorclass=pymysql.cursors.Cursor
+            )
         self._cursor = self._conn.cursor()
 
     def __enter__(self):
