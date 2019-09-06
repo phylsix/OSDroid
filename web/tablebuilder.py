@@ -237,14 +237,22 @@ class DocBuilder:
 
         return {'data': data_, 'timestamp': self.updatetime}
 
-    def get_error_report(self, name):
+    def get_error_report(self, name, timestamp=None):
         db = Database(*self._config)
-        sql = """\
-            SELECT document FROM DocsOneMonthArchive
-            WHERE name = %s ORDER BY timestamp DESC; """
-        db.execute(sql, (name,))
+        if not timestamp:
+            sql = "SELECT document FROM DocsOneMonthArchive WHERE name =%s ORDER BY timestamp DESC;"
+            db.execute(sql, (name,))
+        else:
+            sql = "SELECT document FROM DocsOneMonthArchive WHERE name=%s AND timestamp=%s;"
+            db.execute(sql, (name, timestamp))
         rawdata = db.fetchone()
         if rawdata:
             return json.loads(rawdata['document'])
         else:
             return None
+
+    def get_history_timestamps(self, name):
+        db = Database(*self._config)
+        sql="SELECT timestamp FROM DocsOneMonthArchive WHERE name=%s;"
+        rawdata = db.query(sql, (name,))
+        return [d['timestamp'].strftime("%Y-%m-%d %H:%M:%S") for d in rawdata]

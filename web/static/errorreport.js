@@ -5,7 +5,9 @@ function timeConverter(UNIX_timestamp) {
 
 $(document).ready(function() {
   var wfid = $("#wfId").html(); // get workflow name
-  $.getJSON("/docs/errorreport/" + wfid, function(rawdata) {
+  var timestamp = $("#ts").html(); // timestamp
+
+  $.getJSON("/docs/errorreport?name=" + wfid + "&timestamp="+timestamp, function(rawdata) {
     $("#_summaryTable").DataTable({
       data: [
         [
@@ -104,5 +106,29 @@ $(document).ready(function() {
     taskTable.initializeTableHierarchy();
   }).fail(function() {
     alert("No error report for\n"+wfid+"\navailable!");
+  });
+
+  $.getJSON("/docs/timestamps/"+wfid, function(rawdata) {
+    $("#_history").html(rawdata.map(ts =>
+      "<a href='errorreport?name="+wfid+"&timestamp="+ts+"' class='timestamplabel'>"+ts+"</a>"
+      ).join(" "));
+
+    $(".timestamplabel").hover(
+      function(){$(this).css("color", "green");},
+      function(){$(this).css("color", "darkgoldenrod");}
+    );
+
+    // highlight the current timestamp
+    $("#_history").children().each(function(){
+      if ($(this).html() == $("#ts").html()) {
+          $(this).css("color", "white")
+                 .css("background", "darkgoldenrod");
+          $(this).hover(
+            function(){$(this).css("font-weight", "bold").css("color", "white");},
+            function(){$(this).css("font-weight", "normal").css("color", "white")}
+          );
+      }
+    });
+
   });
 });

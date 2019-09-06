@@ -1,6 +1,6 @@
 {% extends "layout.html" %} {% block content %}
 
-<p>Last update at {{ updatetime }} CEST</p>
+<p>Updated at <span id='ts'>{{ updatetime }}</span> CEST</p>
 <h2>
   WorkflowName: <span id="wfId">{{ name }}</span>
 </h2>
@@ -33,6 +33,9 @@
 
 <h3>Tasks</h3>
 <div id="_taskTable"></div>
+
+<h3>History Reports</h3>
+<div id="_history"></div>
 
 {% endblock %} {% block scripts %}
 
