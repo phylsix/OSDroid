@@ -9,54 +9,12 @@ import yaml
 
 from .serverside import table_schemas
 from .serverside.serverside_table import ServerSideTable
+from .database import Database
 
 CONFIG_FILE_PATH = join(dirname(abspath(__file__)), "../config/config.yml")
 
 def convert_time(tsecs, fmt="%Y-%m-%d %H:%M:%S"):
     return datetime.fromtimestamp(tsecs).strftime(fmt)
-
-
-class Database:
-    def __init__(self, user, password, dbname):
-        self._conn = pymysql.connect(
-            host='localhost',
-            user=user,
-            password=password,
-            db=dbname,
-            cursorclass=pymysql.cursors.DictCursor
-        )
-        self._cursor = self._conn.cursor()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.commit()
-        self.connection.close()
-
-    @property
-    def connection(self):
-        return self._conn
-
-    @property
-    def cursor(self):
-        return self._cursor
-
-    def commit(self):
-        self.connection.commit()
-
-    def execute(self, sql, params=None):
-        self.cursor.execute(sql, params or ())
-
-    def fetchall(self):
-        return self.cursor.fetchall()
-
-    def fetchone(self):
-        return self.cursor.fetchone()
-
-    def query(self, sql, params=None):
-        self.cursor.execute(sql, params or ())
-        return self.fetchall()
 
 
 class TableBuilder:
@@ -240,7 +198,7 @@ class DocBuilder:
     def get_error_report(self, name, timestamp=None):
         db = Database(*self._config)
         if not timestamp:
-            sql = "SELECT document FROM DocsOneMonthArchive WHERE name =%s ORDER BY timestamp DESC;"
+            sql = "SELECT document FROM DocsOneMonthArchive WHERE name=%s ORDER BY timestamp DESC;"
             db.execute(sql, (name,))
         else:
             sql = "SELECT document FROM DocsOneMonthArchive WHERE name=%s AND timestamp=%s;"
@@ -256,3 +214,26 @@ class DocBuilder:
         sql="SELECT timestamp FROM DocsOneMonthArchive WHERE name=%s;"
         rawdata = db.query(sql, (name,))
         return [d['timestamp'].strftime("%Y-%m-%d %H:%M:%S") for d in rawdata]
+
+class WorkflowIssueBuilder:
+    def __init__(self):
+        self._config = yaml.load(open(CONFIG_FILE_PATH).read(),
+                                 Loader=yaml.FullLoader)['mysql']
+
+    def _running_workflow_names(self):
+        pass
+
+    def _workflow_running_period(self, workflow):
+        pass
+
+    def _workflow_prediction_fraction(self, workflow):
+        pass
+
+    def _get_workflow_report(self, workflow):
+        pass
+
+    def is_workflow_flagged(self, workflow):
+        pass
+
+    def flagged_workflows(self):
+        pass

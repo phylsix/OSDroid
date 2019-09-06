@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from flask import Blueprint, request, render_template, jsonify
-from .tablebuilder import TableBuilder, DocBuilder
+from .builders import TableBuilder, DocBuilder
 
 ###############################################################################
 
