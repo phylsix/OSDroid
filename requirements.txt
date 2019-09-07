@@ -7,4 +7,5 @@ cx_Oracle
 git+https://github.com/CMSCompOps/OpsSpace.git
 flask
 flask_compress
+Flask-Caching
 pymysql

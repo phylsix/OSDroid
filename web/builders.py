@@ -2,7 +2,6 @@
 import json
 import traceback
 from collections import defaultdict
-from datetime import datetime
 from os.path import abspath, dirname, join
 
 import pymysql
@@ -15,6 +14,7 @@ from .database import Database
 CONFIG_FILE_PATH = join(dirname(abspath(__file__)), "../config/config.yml")
 
 def convert_time(tsecs, fmt="%Y-%m-%d %H:%M:%S"):
+    from datetime import datetime
     return datetime.fromtimestamp(tsecs).strftime(fmt)
 
 
@@ -304,7 +304,7 @@ class WorkflowIssueBuilder(IssueBuilder):
         flagged_workflownames = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(running_workflownames)) as executor:
             futures = {executor.submit(self.is_workflow_flagged, workflow): workflow for workflow in running_workflownames}
-            for future in concurrent.futures.as_completed(futures):
+            for future in concurrent.futures.as_completed(futures, timeout=300):
                 workflowname = futures[future]
                 try:
                     if future.result():
@@ -392,11 +392,11 @@ class SiteIssueBuilder(IssueBuilder):
     def flagged_sites(self, threshold=500):
         import concurrent.futures
 
-        running_workflownames = self._running_workflow_names()[:10]
+        running_workflownames = self._running_workflow_names()
         siteerror_increases = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
             futures = {executor.submit(self._siteerror_increase_per_workflow, workflow): workflow for workflow in running_workflownames}
-            for future in concurrent.futures.as_completed(futures):
+            for future in concurrent.futures.as_completed(futures, timeout=300):
                 workflowname = futures[future]
                 try:
                     res = future.result()
@@ -412,7 +412,11 @@ class SiteIssueBuilder(IssueBuilder):
             for site in entry:
                 siteerror_sum[site] += entry[site]
 
-        return [site for site, errinc in siteerror_sum.items() if errinc>threshold]
+        result = []
+        for site in siteerror_sum:
+            if siteerror_sum[site] > threshold:
+                result.append({'site': site, 'errorinc': siteerror_sum[site]})
+        return result
 
 
 if __name__ =="__main__":
