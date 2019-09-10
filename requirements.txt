@@ -9,3 +9,4 @@ flask
 flask_compress
 Flask-Caching
 pymysql
+jira

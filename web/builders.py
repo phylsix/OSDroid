@@ -356,7 +356,6 @@ class SiteIssueBuilder(IssueBuilder):
         idx = np.abs(np.array(ts1diffarrays)).argmin()
 
         totalreports = self._get_workflow_reports(workflow)
-        # print(len(totalreports), idx, workflow)
         return json.loads(totalreports[-1]), json.loads(totalreports[idx])
 
     @staticmethod
