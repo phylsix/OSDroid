@@ -4,7 +4,9 @@ then send notifications if any.
 """
 import json
 import smtplib
+import socket
 import urllib.request
+from datetime import datetime
 from email.mime.text import MIMEText
 from os.path import abspath, dirname, isfile, join
 
@@ -48,6 +50,16 @@ class JiraClient:
 
         return self.client.create_issue(fields)
 
+    def search_issue(self, label, identifier):
+        assert(label in ['WorkflowIssue', 'SiteIssue'])
+        jql = 'project=%s AND labels=%s AND summary~%s'
+        return self.client.search_issues(jql % ('CMSCOMPTNITEST', label, identifier))
+
+    def add_comment(self, issuekey, comment):
+        return self.client.add_comment(issuekey, comment)
+
+
+
 def send_email(subject, msg, recipients):
     sender = 'toolsandint-workflowmonitalert@cern.ch'
 
@@ -63,26 +75,41 @@ def send_email(subject, msg, recipients):
 def main():
 
     osdroid_addr = 'http://localhost:8020'
+    host_addr = f'http://{socket.gethostname()}:8020'
+    time_str = '{} {}'.format(datetime.now().isoformat(sep=' ', timespec='seconds'),
+                              datetime.now().astimezone().tzname())
     jc = JiraClient()
 
     with urllib.request.urlopen(url=f'{osdroid_addr}/issues/workflow', timeout=60*8) as url:
         flagged_workflows = json.loads(url.read().decode())
-        if flagged_workflows:
-            fmt = '* {0} [unified|https://cms-unified.web.cern.ch/cms-unified//report/{0}] [OSDroid|{1}/errorreport?name={0}]'
-            desc = '\n'.join([fmt.format(workflow, osdroid_addr) for workflow in flagged_workflows])
-            jc.create_issue(label='WorkflowIssue',
-                            summary=f'{len(flagged_workflows)} potential workflow issue(s) detected',
-                            description=desc)
+        for workflow in flagged_workflows:
+            issues = jc.search_issue(label='WorkflowIssue', identifier=workflow)
+            if issues:
+                comment = f'<sentinel> detected on {time_str}'
+                jc.add_comment(issues[0].key, comment)
+            else:
+                desc = '\n'.join([
+                    '* [unified|https://cms-unified.web.cern.ch/cms-unified//report/{0}]',
+                    '* [OSDroid|{1}/errorreport?name={0}]',
+                ])
+                jc.create_issue(label='WorkflowIssue',
+                                summary=f'<Workflow> - {workflow} needs attention',
+                                description=desc.format(workflow, host_addr))
 
     with urllib.request.urlopen(url=f'{osdroid_addr}/issues/site', timeout=60*8) as url:
         flagged_sites = json.loads(url.read().decode())
-        if flagged_sites:
-            fmt = "* {0}: {1}"
-            desc = '\n'.join([fmt.format(x['site'], x['errorinc']) for x in flagged_sites])
-            jc.create_issue(label='SiteIssue',
-                            summary=f'{len(flagged_sites)} potential site issue(s) detected',
-                            description=desc)
-
+        for siteinfo in flagged_sites:
+            desc = 'site: {}, error increased: {}, detected on {}'.format(siteinfo['site'],
+                                                                          siteinfo['errorinc'],
+                                                                          time_str)
+            issues = jc.search_issue(label='SiteIssue', identifier=siteinfo['site'])
+            if issues:
+                comment = f'<sentinel> {desc}'
+                jc.add_comment(issues[0].key, comment)
+            else:
+                jc.create_issue(label='SiteIssue',
+                                summary=f'<Site> - {siteinfo['site']} needs attention',
+                                description=desc)
 
 
 if __name__ == "__main__":
