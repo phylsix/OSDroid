@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 from flask import Blueprint, request, render_template, jsonify
-from .tablebuilder import TableBuilder, DocBuilder
+from .builders import TableBuilder, DocBuilder, WorkflowIssueBuilder, SiteIssueBuilder
+from .cache import cache
 
 ###############################################################################
 
 main = Blueprint('main', __name__, url_prefix='')
 
 @main.route('/')
+@cache.cached()
 def index():
     tb = TableBuilder()
     data_ = {
@@ -17,18 +19,22 @@ def index():
     return render_template('home.html', **data_)
 
 @main.route('/running2days')
+@cache.cached()
 def running2days():
     return render_template('running2days.html', page='running2days')
 
 @main.route('/running7days')
+@cache.cached()
 def running7days():
     return render_template('running7days.html', page='running7days')
 
 @main.route('/running2weeks')
+@cache.cached()
 def running2weeks():
     return render_template('running2weeks.html', page='running2weeks')
 
 @main.route('/archived')
+@cache.cached()
 def archived():
     tb = TableBuilder()
     data_ = {
@@ -38,6 +44,7 @@ def archived():
     return render_template('archived.html', **data_)
 
 @main.route('/everything')
+@cache.cached()
 def everything():
     tb = TableBuilder()
     data_ = {
@@ -47,6 +54,7 @@ def everything():
     return render_template('everything.html', **data_)
 
 @main.route('/siteerrors')
+@cache.cached()
 def siteerrors():
     docbuilder_ = DocBuilder()
     data_ = {
@@ -56,6 +64,7 @@ def siteerrors():
     return render_template('siteerrors.html', **data_)
 
 @main.route('/errorreport')
+@cache.cached()
 def errorreport():
     wfname = request.args.get('name', default='', type=str)
     timestamp = request.args.get('timestamp', default='', type=str)
@@ -103,6 +112,7 @@ def everything_table_content():
 predhistory = Blueprint('predhistory', __name__, url_prefix='/predhistory')
 
 @predhistory.route('<wfname>', methods=['GET'])
+@cache.cached()
 def workflow_history(wfname):
     return jsonify(TableBuilder().get_workflow_history(wfname))
 
@@ -111,14 +121,17 @@ def workflow_history(wfname):
 docs = Blueprint('docs', __name__, url_prefix='/docs')
 
 @docs.route('site_errors', methods=['GET'])
+@cache.cached()
 def site_errors():
     return jsonify(DocBuilder().totalerror_per_site())
 
 @docs.route('/lastdoc')
+@cache.cached()
 def lastdoc():
     return jsonify(DocBuilder().lastdoc)
 
 @docs.route('/errorreport', methods=['GET'])
+@cache.cached()
 def workflow_errorreport():
     wfname = request.args.get('name', default='', type=str)
     timestamp = request.args.get('timestamp', default='', type=str)
@@ -129,5 +142,20 @@ def workflow_errorreport():
     return response
 
 @docs.route('/timestamps/<wfname>', methods=['GET'])
+@cache.cached()
 def errorreport_timestamps(wfname):
     return jsonify(DocBuilder().get_history_timestamps(wfname))
+
+###############################################################################
+
+issues = Blueprint('issues', __name__, url_prefix='/issues')
+
+@issues.route('workflow', methods=['GET'])
+@cache.cached()
+def workflow_issues():
+    return jsonify(WorkflowIssueBuilder().flagged_workflows())
+
+@issues.route('site', methods=['GET'])
+@cache.cached()
+def site_issues():
+    return jsonify(SiteIssueBuilder().flagged_sites())

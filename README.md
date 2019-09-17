@@ -44,6 +44,7 @@ A few more configuration files are needed to get it rolling.
    topic: /topic/cms.toolsandint.workflowsinfo
    cert: PATH_TO_CERT_FILE (***.pem)
    key: PATH_TO_KEY_FILE (***.rsa)
+   jiracookie: PATH_TO_COOKIE_FILE
    hostport:
      host: XXXX.cern.ch
      port: XXXXX
