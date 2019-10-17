@@ -1,7 +1,16 @@
 #!/usr/bin/env python
-from flask import Blueprint, request, render_template, jsonify
-from .builders import TableBuilder, DocBuilder, WorkflowIssueBuilder, SiteIssueBuilder
+from os.path import abspath, dirname, join
+
+import yaml
+from flask import (Blueprint, jsonify, redirect, render_template, request,
+                   url_for)
+
+from .builders import (DocBuilder, SiteIssueBuilder, TableBuilder,
+                       WorkflowIssueBuilder)
 from .cache import cache
+from .forms import IssueSettingForm
+
+CONFIG_FILE_PATH = join(dirname(abspath(__file__)), "../config/config.yml")
 
 ###############################################################################
 
@@ -62,6 +71,36 @@ def siteerrors():
         "page": 'siteerrors',
     }
     return render_template('siteerrors.html', **data_)
+
+@main.route('/issuesettings', methods=['GET', 'POST'])
+def issuesettings():
+    form = IssueSettingForm()
+
+    if form.validate_on_submit():
+        settings = dict(
+            workflow=dict(
+                runningDays=float(form.wf_runningDays.data),
+                resubmitProb=float(form.wf_resubmitProb.data),
+                resubmitAsTopFrac=float(form.wf_resubmitAsTopFrac.data),
+                totalError=float(form.wf_totalError.data),
+                failureRate=float(form.wf_failureRate.data),
+            ),
+            site=dict(
+                runningHours=float(form.site_runningHours.data),
+                acdcProb=float(form.site_acdcProb.data),
+                errorCountInc=int(form.site_errorCountInc.data),
+            )
+        )
+        globalconfig = yaml.load(open(CONFIG_FILE_PATH).read(), Loader=yaml.FullLoader)
+        globalconfig['issueSentinel'] = settings
+        yaml.dump(globalconfig, open(CONFIG_FILE_PATH, 'w'), default_flow_style=False)
+
+    data_ = {
+        "page": 'issuesettings',
+        "form": form,
+    }
+
+    return render_template('issuesettings.html', **data_)
 
 @main.route('/errorreport')
 @cache.cached()

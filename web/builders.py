@@ -7,9 +7,10 @@ from os.path import abspath, dirname, join
 import pymysql
 import yaml
 
+from .database import Database
+from .forms import getSiteIssueSettings, getWorkflowIssueSettings
 from .serverside import table_schemas
 from .serverside.serverside_table import ServerSideTable
-from .database import Database
 
 CONFIG_FILE_PATH = join(dirname(abspath(__file__)), "../config/config.yml")
 
@@ -243,7 +244,7 @@ class IssueBuilder:
 
         sql = "SELECT timestamp FROM PredictionHistory WHERE name=%s"
         tsarray = np.array(db.query(sql, (workflow,))).flatten()
-        intimeframe = (tsarray[-1]-timedelta(days=1)) < tsarray
+        intimeframe = (tsarray[-1]-timedelta(days=dayframe)) < tsarray
 
         inframe_preds = dataarray.argmax(axis=1)[intimeframe]
         return (inframe_preds==pred).sum()/inframe_preds.size
@@ -262,35 +263,36 @@ class IssueBuilder:
 class WorkflowIssueBuilder(IssueBuilder):
     def __init__(self):
         super().__init__()
+        self.settings = getWorkflowIssueSettings()
 
     def _running_workflow_names(self):
-        """return running workflow names whose predicted probability of *resubmit* > 0.3"""
+        """return running workflow names whose predicted probability of *resubmit* > 0.3 (default)"""
 
         db = Database(*self._config)
-        sql = "SELECT name FROM PredictionHistory WHERE timestamp=(SELECT MAX(timestamp) FROM PredictionHistory) and resubmit>0.3"
+        sql = "SELECT name FROM PredictionHistory WHERE timestamp=(SELECT MAX(timestamp) FROM PredictionHistory) and resubmit>{}".format(self.settings['resubmitProb'])
         result = db.query(sql)
         return [d['name'] for d in result]
 
     def is_workflow_flagged(self, workflow):
         """determine whether a ``workflow`` should be flagged as **workflowIssue**.
         The following conditions need to be met:
-        1. running period > 1 day
-        2. fraction of prediction of *resubmit* to be rank 1 over past 1 day > 75%
-        3. from most recent error report, totalError > 100
-        4. from most recent error reprot, failureRate > 50%
+        1. running period > 1 day (default)
+        2. fraction of prediction of *resubmit* to be rank 1 over past 1 day (default) > 75% (default)
+        3. from most recent error report, totalError > 100 (default)
+        4. from most recent error reprot, failureRate > 50% (default)
 
         :param str workflow: workflow name
         """
-        if self._workflow_running_period(workflow).days < 1:
+        if self._workflow_running_period(workflow).days < self.settings['runningDays']:
             return False
 
-        if self._workflow_prediction_fraction(workflow) < 0.75:
+        if self._workflow_prediction_fraction(workflow, dayframe=self.settings['runningDays']) < self.settings['resubmitAsTopFrac']:
             return False
 
         lastdoc = self._get_workflow_report(workflow)
-        if lastdoc['totalError'] < 100:
+        if lastdoc['totalError'] < self.settings['totalError']:
             return False
-        if lastdoc['failureRate'] < 0.5:
+        if lastdoc['failureRate'] < self.settings['failureRate']:
             return False
 
         return True
@@ -320,12 +322,13 @@ class WorkflowIssueBuilder(IssueBuilder):
 class SiteIssueBuilder(IssueBuilder):
     def __init__(self):
         super().__init__()
+        self.settings = getSiteIssueSettings()
 
     def _running_workflow_names(self):
-        """return running workflow names whose predicted probability of *acdc* > 0.5"""
+        """return running workflow names whose predicted probability of *acdc* > 0.5 (default)"""
 
         db = Database(*self._config)
-        sql = "SELECT name FROM PredictionHistory WHERE timestamp=(SELECT MAX(timestamp) FROM PredictionHistory) and acdc>0.5"
+        sql = "SELECT name FROM PredictionHistory WHERE timestamp=(SELECT MAX(timestamp) FROM PredictionHistory) and acdc>{}".format(self.settings['acdcProb'])
         result = db.query(sql)
         return [d['name'] for d in result]
 
@@ -338,7 +341,7 @@ class SiteIssueBuilder(IssueBuilder):
     def _get_two_reports(self, workflow, timespan=4):
         """return two reports to be compared.
         The first one is closest to max(timestamp),
-        The second one is closest to max(timestamp)-4h.
+        The second one is closest to max(timestamp)-4h (default).
 
         :param str workflow: workflow name
         :param int timespan: hour diff wrt. max(timestamp)
@@ -383,12 +386,12 @@ class SiteIssueBuilder(IssueBuilder):
         return res
 
     def _siteerror_increase_per_workflow(self, workflow):
-        if self._workflow_running_period(workflow).seconds < 60*60*4:
+        if self._workflow_running_period(workflow).seconds < 60*60*self.settings['runningHours']:
             return {}
-        report_present, report_past = self._get_two_reports(workflow)
+        report_present, report_past = self._get_two_reports(workflow, timespan=self.settings['runningHours'])
         return SiteIssueBuilder.siteerror_increase(report_past, report_present)
 
-    def flagged_sites(self, threshold=500):
+    def flagged_sites(self):
         import concurrent.futures
 
         running_workflownames = self._running_workflow_names()
@@ -413,7 +416,7 @@ class SiteIssueBuilder(IssueBuilder):
 
         result = []
         for site in siteerror_sum:
-            if siteerror_sum[site] > threshold:
+            if siteerror_sum[site] > self.settings['errorCountInc']:
                 result.append({'site': site, 'errorinc': siteerror_sum[site]})
         return result
 

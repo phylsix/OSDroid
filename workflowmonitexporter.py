@@ -151,7 +151,7 @@ def updateWorkflowStatusToDb(configPath, wcErrorInfos):
 
 # -----------------------------------------------------------------------------
 
-def prepareWorkflows(configpath, minfailurerate=0., test=False, batchsize=400):
+def prepareWorkflows(configpath, minfailurerate=0., test=False, batchsize=300):
     """
     extract workflows from unified db, filter out those need to query,
     stratified with batchsize.

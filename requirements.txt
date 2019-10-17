@@ -8,5 +8,6 @@ git+https://github.com/CMSCompOps/OpsSpace.git
 flask
 flask_compress
 Flask-Caching
+Flask-WTF
 pymysql
 jira

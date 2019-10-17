@@ -1,0 +1,29 @@
+{% extends "layout.html" %} {% block content %}
+
+<form action="{{ url_for('main.issuesettings') }}" method="POST">
+
+<h3>Site Issue Settings</h3>
+
+<ul>
+    <li>Minimum running hours: {{ form.site_runningHours }}</li>
+    <li>Minimum latest predicted ACDC probability: {{ form.site_acdcProb }}</li>
+    <li>Minimum error count increase: {{ form.site_errorCountInc }}</li>
+</ul>
+
+
+<h3>Workflow Issue Settings</h3>
+
+  <ul>
+    <li>Minimum running days: {{ form.wf_runningDays }}</li>
+    <li>Minimum latest predicted Resubmit probability: {{ form.wf_resubmitProb }}</li>
+    <li>Minimum fraction of predictions to be Resubmit ranking as first over past minimum running days: {{ form.wf_resubmitAsTopFrac }}</li>
+    <li>Minimum total errors from latest error report: {{ form.wf_totalError }}</li>
+    <li>Minimum failure rate from latest error report: {{ form.wf_failureRate }}</li>
+</ul>
+{{ form.submit }}
+{{ form.csrf_token }}
+</form>
+
+{% endblock %} {% block scripts %}
+
+{% endblock %}

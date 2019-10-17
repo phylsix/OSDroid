@@ -108,7 +108,7 @@ def main():
                 jc.add_comment(issues[0].key, comment)
             else:
                 jc.create_issue(label='SiteIssue',
-                                summary=f'<Site> - {siteinfo['site']} needs attention',
+                                summary='<Site> - {} needs attention'.format(siteinfo['site']),
                                 description=desc)
 
 
