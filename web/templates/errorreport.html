@@ -39,12 +39,6 @@
 
 {% endblock %} {% block scripts %}
 
-<script
-  type="text/javascript"
-  src="{{ url_for('static', filename='nested.tables.min.js')}}"
-></script>
-<script
-  type="text/javascript"
-  src="{{ url_for('static', filename='errorreport.js')}}"
-></script>
+<script type="text/javascript" src="{{ url_for('static', filename='nested.tables.min.js')}}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='errorreport.js')}}"></script>
 {% endblock %}

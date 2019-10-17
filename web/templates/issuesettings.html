@@ -1,29 +1,92 @@
 {% extends "layout.html" %} {% block content %}
 
-<form action="{{ url_for('main.issuesettings') }}" method="POST">
 
-<h3>Site Issue Settings</h3>
-
+<h3>Site Issue Rules</h3>
+For running workflows whose:
 <ul>
-    <li>Minimum running hours: {{ form.site_runningHours }}</li>
-    <li>Minimum latest predicted ACDC probability: {{ form.site_acdcProb }}</li>
-    <li>Minimum error count increase: {{ form.site_errorCountInc }}</li>
+  <li>running period (newest error report timestamp - oldest error report timestamp) >
+    <strong>{{site_runningHours}}h</strong></li>
+  <li>probability of ACDC from newest prediction > <strong>{{site_acdcProb}}</strong></li>
 </ul>
+, two error reports
+<ol>
+  <li>newest error report</li>
+  <li>error report generated around <strong>{{site_runningHours}}h</strong> ago</li>
+</ol>
+, are compared to get the error count increase for each reported site.
+<br />
+Aggregate increases from all workflows, flagged site which has <strong>{{site_errorCountInc}}</strong> error count
+increase as site issue.
 
-
-<h3>Workflow Issue Settings</h3>
-
-  <ul>
-    <li>Minimum running days: {{ form.wf_runningDays }}</li>
-    <li>Minimum latest predicted Resubmit probability: {{ form.wf_resubmitProb }}</li>
-    <li>Minimum fraction of predictions to be Resubmit ranking as first over past minimum running days: {{ form.wf_resubmitAsTopFrac }}</li>
-    <li>Minimum total errors from latest error report: {{ form.wf_totalError }}</li>
-    <li>Minimum failure rate from latest error report: {{ form.wf_failureRate }}</li>
+<h3>Workflow Issue Rules</h3>
+For running workflows whose:
+<ul>
+  <li>running period (newest error report timestamp - oldest error report timestamp) >
+    <strong>{{wf_runningDays}}d</strong></li>
+  <li>probability of resubmit from newest prediction > <strong>{{wf_resubmitProb}}</strong></li>
 </ul>
-{{ form.submit }}
-{{ form.csrf_token }}
-</form>
+, flag those
+<ul>
+  <li>fraction of prediction of resubmit ranking first over past <strong>{{wf_runningDays}}</strong> day >
+    <strong>{{wf_resubmitAsTopFrac}}</strong></li>
+  <li>number of totalError from newest error report > <strong>{{wf_totalError}}</strong></li>
+  <li>failure rate from newest error report > <strong>{{wf_failureRate}}</strong></li>
+</ul>
+as workflow issue.
+
+<br />
+
+<button id="issuesettingsBtn">Make new settings</button>
+<div id="issuesettings" style="display: none;">
+  <hr />
+  <form action="{{ url_for('main.issuesettings') }}" method="POST">
+    <h3>Site Issue Settings</h3>
+
+    <ul>
+      <li>Minimum running hours: {{ form.site_runningHours }} ({{ form.site_runningHours.label }})</li>
+      <li>Minimum latest predicted ACDC probability: {{ form.site_acdcProb }} ({{ form.site_acdcProb.label }})</li>
+      <li>Minimum error count increase: {{ form.site_errorCountInc }} ({{ form.site_errorCountInc.label }})</li>
+    </ul>
+
+
+    <h3>Workflow Issue Settings</h3>
+
+    <ul>
+      <li>Minimum running days: {{ form.wf_runningDays }} ({{ form.wf_runningDays.label }})</li>
+      <li>Minimum latest predicted Resubmit probability: {{ form.wf_resubmitProb }} ({{ form.wf_resubmitProb.label }})
+      </li>
+      <li>Minimum fraction of predictions to be Resubmit ranking as first over past minimum running days:
+        {{ form.wf_resubmitAsTopFrac }} ({{ form.wf_resubmitAsTopFrac.label }})</li>
+      <li>Minimum total errors from latest error report: {{ form.wf_totalError }} ({{ form.wf_totalError.label }})</li>
+      <li>Minimum failure rate from latest error report: {{ form.wf_failureRate }} ({{ form.wf_failureRate.label }})
+      </li>
+    </ul>
+    {{ form.csrf_token }}
+    {{ form.submit }}
+
+  </form>
+
+  {% if form.errors %}
+  <ul style="color: crimson;">
+    {% for field, errors in form.errors.items() %}
+    <li>{{ form[field].label }}: {{ ', '.join(errors) }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+  <ul class=flashes>
+    {% for message in messages %}
+    <li style="color: green;">{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% endwith %}
+
+</div>
 
 {% endblock %} {% block scripts %}
-
+<script type="text/javascript" src="{{ url_for('static', filename='issuesettings.js')}}"></script>
 {% endblock %}

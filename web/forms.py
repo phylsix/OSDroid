@@ -36,14 +36,14 @@ def getSiteIssueSettings():
 
 
 class IssueSettingForm(FlaskForm):
-    wf_runningDays = DecimalField("runningDays", default=getWorkflowIssueSettings()['runningDays'], validators=[InputRequired(), NumberRange(min=0.)])
-    wf_resubmitProb = DecimalField("resubmitProb", default=getWorkflowIssueSettings()['resubmitProb'], validators=[InputRequired(), NumberRange(min=0., max=1.)])
-    wf_resubmitAsTopFrac = DecimalField("resubmitAsTopFrac", default=getWorkflowIssueSettings()['resubmitAsTopFrac'], validators=[InputRequired(), NumberRange(min=0., max=1.)])
-    wf_totalError = IntegerField("totalError", default=getWorkflowIssueSettings()['totalError'], validators=[InputRequired(), NumberRange(min=0.)])
-    wf_failureRate = DecimalField("failureRate", default=getWorkflowIssueSettings()['failureRate'], validators=[InputRequired(), NumberRange(min=0., max=1.)])
+    wf_runningDays = DecimalField("runningDays", default=getWorkflowIssueSettings()['runningDays'], validators=[NumberRange(min=0.)])
+    wf_resubmitProb = DecimalField("resubmitProb", default=getWorkflowIssueSettings()['resubmitProb'], validators=[NumberRange(min=0., max=1.)])
+    wf_resubmitAsTopFrac = DecimalField("resubmitAsTopFrac", default=getWorkflowIssueSettings()['resubmitAsTopFrac'], validators=[NumberRange(min=0., max=1.)])
+    wf_totalError = IntegerField("totalError", default=getWorkflowIssueSettings()['totalError'], validators=[NumberRange(min=0)])
+    wf_failureRate = DecimalField("failureRate", default=getWorkflowIssueSettings()['failureRate'], validators=[NumberRange(min=0., max=1.)])
 
-    site_runningHours = DecimalField("runningHours", default=getSiteIssueSettings()['runningHours'], validators=[InputRequired(), NumberRange(min=0.)])
-    site_acdcProb = DecimalField("acdcProb", default=getSiteIssueSettings()['acdcProb'], validators=[InputRequired(), NumberRange(min=0., max=1.)])
-    site_errorCountInc = IntegerField("errorCountInc", default=getSiteIssueSettings()['errorCountInc'], validators=[InputRequired(), NumberRange(min=0.)])
+    site_runningHours = DecimalField("runningHours", default=getSiteIssueSettings()['runningHours'], validators=[NumberRange(min=0.)])
+    site_acdcProb = DecimalField("acdcProb", default=getSiteIssueSettings()['acdcProb'], validators=[NumberRange(min=0., max=1.)])
+    site_errorCountInc = IntegerField("errorCountInc", default=getSiteIssueSettings()['errorCountInc'], validators=[NumberRange(min=0)])
 
     submit = SubmitField("submit")

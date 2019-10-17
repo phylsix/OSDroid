@@ -3,12 +3,12 @@ from os.path import abspath, dirname, join
 
 import yaml
 from flask import (Blueprint, jsonify, redirect, render_template, request,
-                   url_for)
+                   url_for, flash)
 
 from .builders import (DocBuilder, SiteIssueBuilder, TableBuilder,
                        WorkflowIssueBuilder)
 from .cache import cache
-from .forms import IssueSettingForm
+from .forms import IssueSettingForm, getWorkflowIssueSettings, getSiteIssueSettings
 
 CONFIG_FILE_PATH = join(dirname(abspath(__file__)), "../config/config.yml")
 
@@ -82,7 +82,7 @@ def issuesettings():
                 runningDays=float(form.wf_runningDays.data),
                 resubmitProb=float(form.wf_resubmitProb.data),
                 resubmitAsTopFrac=float(form.wf_resubmitAsTopFrac.data),
-                totalError=float(form.wf_totalError.data),
+                totalError=int(form.wf_totalError.data),
                 failureRate=float(form.wf_failureRate.data),
             ),
             site=dict(
@@ -94,10 +94,21 @@ def issuesettings():
         globalconfig = yaml.load(open(CONFIG_FILE_PATH).read(), Loader=yaml.FullLoader)
         globalconfig['issueSentinel'] = settings
         yaml.dump(globalconfig, open(CONFIG_FILE_PATH, 'w'), default_flow_style=False)
+        flash("Successfully submit!")
 
+    sitesettings = getSiteIssueSettings()
+    wfsettings = getWorkflowIssueSettings()
     data_ = {
         "page": 'issuesettings',
         "form": form,
+        "site_runningHours": sitesettings['runningHours'],
+        "site_acdcProb": sitesettings['acdcProb'],
+        "site_errorCountInc": sitesettings['errorCountInc'],
+        "wf_runningDays": wfsettings['runningDays'],
+        "wf_resubmitProb": wfsettings['resubmitProb'],
+        "wf_resubmitAsTopFrac": wfsettings['resubmitAsTopFrac'],
+        "wf_totalError": wfsettings['totalError'],
+        "wf_failureRate": wfsettings['failureRate'],
     }
 
     return render_template('issuesettings.html', **data_)

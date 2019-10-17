@@ -10,11 +10,7 @@
       <span style="color:white; background: #7F7F7F">Site Issue</span> |
       <span style="color:white; background: #d62728">Workflow Issue</span> made
       by informaiton from reqmgr2, see
-      <a
-        href="https://github.com/CMSCompOps/OSDroid/blob/master/workflowlabelmaker.py#L3-L12"
-        target="_blank"
-        >here</a
-      >.
+      <a href="https://github.com/CMSCompOps/OSDroid/blob/master/workflowlabelmaker.py#L3-L12" target="_blank">here</a>.
     </li>
     <li>
       <span style="background: #a1d99b">&nbsp;&nbsp;&nbsp;&nbsp;</span> known
@@ -64,17 +60,8 @@
 </table>
 
 {% endblock %} {% block scripts %}
-<script
-  type="text/javascript"
-  src="https://cdn.plot.ly/plotly-latest.min.js"
-></script>
-<script
-  type="text/javascript"
-  src="{{ url_for('static', filename='base.js')}}"
-></script>
-<script
-  type="text/javascript"
-  src="{{ url_for('static', filename='archived.js')}}"
-></script>
+<script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='base.js')}}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='archived.js')}}"></script>
 
 {% endblock %}
