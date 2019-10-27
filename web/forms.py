@@ -3,8 +3,9 @@ from os.path import abspath, dirname, join
 
 import yaml
 from flask_wtf import FlaskForm
-from wtforms.fields import DecimalField, IntegerField, SubmitField
-from wtforms.validators import InputRequired, NumberRange
+from wtforms.fields import (DecimalField, IntegerField, PasswordField,
+                            SubmitField)
+from wtforms.validators import InputRequired, NumberRange, ValidationError
 
 CONFIG_FILE_PATH = join(dirname(abspath(__file__)), "../config/config.yml")
 
@@ -35,6 +36,12 @@ def getSiteIssueSettings():
     return settings
 
 
+def check_pin(form, field):
+    globalconfig = yaml.load(open(CONFIG_FILE_PATH).read(), Loader=yaml.FullLoader)
+    if field.data != globalconfig['issueSentinelPin']:
+        raise ValidationError(message="Wrong pin, input settings will NOT take any effect!")
+
+
 class IssueSettingForm(FlaskForm):
     wf_runningDays = DecimalField("runningDays", default=getWorkflowIssueSettings()['runningDays'], validators=[NumberRange(min=0.)])
     wf_resubmitProb = DecimalField("resubmitProb", default=getWorkflowIssueSettings()['resubmitProb'], validators=[NumberRange(min=0., max=1.)])
@@ -46,4 +53,5 @@ class IssueSettingForm(FlaskForm):
     site_acdcProb = DecimalField("acdcProb", default=getSiteIssueSettings()['acdcProb'], validators=[NumberRange(min=0., max=1.)])
     site_errorCountInc = IntegerField("errorCountInc", default=getSiteIssueSettings()['errorCountInc'], validators=[NumberRange(min=0)])
 
+    pin = PasswordField("pin", validators=[InputRequired(), check_pin])
     submit = SubmitField("submit")

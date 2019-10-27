@@ -2,13 +2,14 @@
 from os.path import abspath, dirname, join
 
 import yaml
-from flask import (Blueprint, jsonify, redirect, render_template, request,
-                   url_for, flash)
+from flask import (Blueprint, flash, jsonify, redirect, render_template,
+                   request, url_for)
 
 from .builders import (DocBuilder, SiteIssueBuilder, TableBuilder,
                        WorkflowIssueBuilder)
 from .cache import cache
-from .forms import IssueSettingForm, getWorkflowIssueSettings, getSiteIssueSettings
+from .forms import (IssueSettingForm, getSiteIssueSettings,
+                    getWorkflowIssueSettings)
 
 CONFIG_FILE_PATH = join(dirname(abspath(__file__)), "../config/config.yml")
 
