@@ -115,7 +115,6 @@ def issuesettings():
     return render_template('issuesettings.html', **data_)
 
 @main.route('/errorreport')
-@cache.cached()
 def errorreport():
     wfname = request.args.get('name', default='', type=str)
     timestamp = request.args.get('timestamp', default='', type=str)
@@ -182,7 +181,6 @@ def lastdoc():
     return jsonify(DocBuilder().lastdoc)
 
 @docs.route('/errorreport', methods=['GET'])
-@cache.cached()
 def workflow_errorreport():
     wfname = request.args.get('name', default='', type=str)
     timestamp = request.args.get('timestamp', default='', type=str)
@@ -193,7 +191,6 @@ def workflow_errorreport():
     return response
 
 @docs.route('/timestamps/<wfname>', methods=['GET'])
-@cache.cached()
 def errorreport_timestamps(wfname):
     return jsonify(DocBuilder().get_history_timestamps(wfname))
 
