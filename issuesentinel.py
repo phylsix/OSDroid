@@ -82,16 +82,22 @@ def main():
 
     with urllib.request.urlopen(url=f'{osdroid_addr}/issues/workflow', timeout=60*8) as url:
         flagged_workflows = json.loads(url.read().decode())
-        for workflow in flagged_workflows:
+        for workflowinfo in flagged_workflows:
+            workflow = workflowinfo.pop('name')
+            details = json.dumps(workflowinfo, indent=4)
             issues = jc.search_issue(label='WorkflowIssue', identifier=workflow)
             if issues:
-                comment = f'<sentinel> detected on {time_str}'
+                comment = f'<sentinel> detected on {time_str}\n'
+                comment += '---------------------------------\n'
+                comment += details
                 jc.add_comment(issues[0].key, comment)
             else:
                 desc = '\n'.join([
                     '* [unified|https://cms-unified.web.cern.ch/cms-unified//report/{0}]',
                     '* [OSDroid|{1}/errorreport?name={0}]',
                 ])
+                desc += '\n\n\n'
+                desc += details
                 jc.create_issue(label='WorkflowIssue',
                                 summary=f'<Workflow> - {workflow} needs attention',
                                 description=desc.format(workflow, host_addr))
@@ -99,17 +105,24 @@ def main():
     with urllib.request.urlopen(url=f'{osdroid_addr}/issues/site', timeout=60*8) as url:
         flagged_sites = json.loads(url.read().decode())
         for siteinfo in flagged_sites:
-            desc = 'site: {}, error increased: {}, detected on {}'.format(siteinfo['site'],
+            site = siteinfo.pop('site')
+            details = json.dumps(siteinfo, indent=4)
+            desc = 'site: {}, error increased: {}, detected on {}'.format(site,
                                                                           siteinfo['errorinc'],
                                                                           time_str)
-            issues = jc.search_issue(label='SiteIssue', identifier=siteinfo['site'])
+            issues = jc.search_issue(label='SiteIssue', identifier=site)
             if issues:
-                comment = f'<sentinel> {desc}'
+                comment = f'<sentinel> {desc}\n'
+                comment += '--------------------------------\n'
+                comment += details
                 jc.add_comment(issues[0].key, comment)
             else:
+                desc_ = desc + '\n'
+                dsec_ += '--------------------------------\n'
+                desc_ += details
                 jc.create_issue(label='SiteIssue',
-                                summary='<Site> - {} needs attention'.format(siteinfo['site']),
-                                description=desc)
+                                summary='<Site> - {} needs attention'.format(site),
+                                description=desc_)
 
 
 if __name__ == "__main__":

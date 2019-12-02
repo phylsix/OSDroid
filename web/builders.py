@@ -229,8 +229,22 @@ class IssueBuilder:
         result = db.query(sql, (workflow,))[0]
         return result['maxts']-result['mints']
 
+    def _workflow_prediction_probabilities(self, workflow):
+        """workflow prediction result from last time
+
+        :param str workflow: workflow name
+        :return: probabilities of good, acdc, resubmit
+        :rtype: list
+        """
+
+        db = Database(*self._config, dictcursor=False)
+        sql = "SELECT good, acdc, resubmit FROM PredictionHistory WHERE name=%s"
+        rawdata = db.query(sql, (workflow,))[-1]
+        return list(rawdata)
+
+
     def _workflow_prediction_fraction(self, workflow, pred=2, dayframe=1):
-        """fraction of a certain prediction over a timeframe (in days).
+        """fraction of a certain prediction ranking first over a timeframe (in days).
         :param str workflow: workflow name
         :param int pred: prediction label: 0: good, 1: acdc, 2: resubmit
         :param int dayframe: number of days to look
@@ -258,6 +272,57 @@ class IssueBuilder:
         sql = "SELECT document FROM DocsOneMonthArchive WHERE name=%s"
         rawdata = db.query(sql, (workflow,))[-1]['document']
         return json.loads(rawdata)
+
+    def _get_last_reports(self):
+        """return the most recent json documents
+        """
+        db = Database(*self._config)
+        sql = "SELECT document FROM DocsOneMonthArchive WHERE timestamp=(SELECT MAX(timestamp) FROM DocsOneMonthArchive)"
+        rawdata = db.query(sql)
+        return [json.loads(x['document']) for x in rawdata]
+
+
+    @staticmethod
+    def get_sitecnt_percode(report):
+        """ from an error report extract error site-count grouped by code.
+
+        :param dict report: report as dictionary
+        :return: {code: {site: count}, ...}
+        :rtype: dict
+        """
+        res = {}
+        for _task in report.get('tasks', []):
+            for _error in _task.get('errors', []):
+                if _error['errorCode'] in res:
+                    if _error['siteName'] in res[_error['errorCode']]:
+                        res[_error['errorCode']][_error['siteName']] += _error['counts']
+                    else:
+                        res[_error['errorCode']][_error['siteName']] = _error['counts']
+                else:
+                    res[_error['errorCode']] = {}
+                    res[_error['errorCode']][_error['siteName']] = _error['counts']
+        return res
+
+    @staticmethod
+    def get_codecnt_persite(report):
+        """from an error reprot extract error code-count grouped by site.
+
+        :param dict report: report as dictionary
+        :return: {site: {code: count}, ...}
+        :rtype: dict
+        """
+        res = {}
+        for _task in report.get('tasks', []):
+            for _error in _task.get('errors', []):
+                if _error['siteName'] in res:
+                    if _error['errorCode'] in res[_error['siteName']]:
+                        res[_error['siteName']][_error['errorCode']] += _error['counts']
+                    else:
+                        res[_error['siteName']][_error['errorCode']] = _error['counts']
+                else:
+                    res[_error['siteName']] = {}
+                    res[_error['siteName']][_error['errorCode']] = _error['counts']
+        return res
 
 
 class WorkflowIssueBuilder(IssueBuilder):
@@ -297,6 +362,28 @@ class WorkflowIssueBuilder(IssueBuilder):
 
         return True
 
+    def dress_workflow(self, workflow):
+        """dress workflow with associated information
+
+        :param str workflow: workflowname
+        :return: dictionary with `workflow` related info
+        :rtype: dict
+        """
+
+        res = {'name': workflow,}
+        tdelta = self._workflow_running_period(workflow)
+        res['running_time'] = tdelta.days*24 + tdelta.seconds/3600. # hours
+        res['prob_prediction_last'] = self._workflow_prediction_probabilities(workflow)
+        res['prob_firstrank_pastday'] = [self._workflow_prediction_fraction(workflow, pred=i) for i in (0,1,2)]
+
+        lastdoc = self._get_workflow_report(workflow)
+        res['total_error'] = lastdoc.get('totalError', 0)
+        res['failure_rate'] = lastdoc.get('failureRate', 0.)
+        res['errorcnt_percode'] = IssueBuilder.get_sitecnt_percode(lastdoc)
+
+        return res
+
+
     def flagged_workflows(self):
         """check all running workflows, collect workflow names flagged by ``is_workflow_flagged``.
         """
@@ -316,7 +403,7 @@ class WorkflowIssueBuilder(IssueBuilder):
                     print("Workflow:", workflowname)
                     print("Msg:", traceback.format_exc())
 
-        return flagged_workflownames
+        return [self.dress_workflow(w) for w in flagged_workflownames]
 
 
 class SiteIssueBuilder(IssueBuilder):
@@ -324,11 +411,13 @@ class SiteIssueBuilder(IssueBuilder):
         super().__init__()
         self.settings = getSiteIssueSettings()
 
-    def _running_workflow_names(self):
+    def _running_workflow_names(self, minacdcprob=None):
         """return running workflow names whose predicted probability of *acdc* > 0.5 (default)"""
 
         db = Database(*self._config)
-        sql = "SELECT name FROM PredictionHistory WHERE timestamp=(SELECT MAX(timestamp) FROM PredictionHistory) and acdc>{}".format(self.settings['acdcProb'])
+        if minacdcprob is None:
+            minacdcprob = self.settings['acdcProb']
+        sql = "SELECT name FROM PredictionHistory WHERE timestamp=(SELECT MAX(timestamp) FROM PredictionHistory) and acdc>{}".format(minacdcprob)
         result = db.query(sql)
         return [d['name'] for d in result]
 
@@ -391,6 +480,37 @@ class SiteIssueBuilder(IssueBuilder):
         report_present, report_past = self._get_two_reports(workflow, timespan=self.settings['runningHours'])
         return SiteIssueBuilder.siteerror_increase(report_past, report_present)
 
+    def dress_siteissue(self, site):
+        """dress site issue with associated information
+
+        :param str site: site name
+        :return: dictionary of site issue info
+        :rtype: dict
+        """
+
+        res = {'site': site,}
+
+        running_workflow_reports = self._get_last_reports()
+        running_workflow_error_onsite = {}
+        for report in running_workflow_reports:
+            errcodecnt_onsite = IssueBuilder.get_codecnt_persite(report).get(site, {})
+            if errcodecnt_onsite:
+                running_workflow_error_onsite[report['name']] = errcodecnt_onsite
+        res['errorcnt_perworkflow'] = running_workflow_error_onsite
+
+        total_errorcodes = []
+        total_errorcnts = 0
+        for codecnts in running_workflow_error_onsite.values():
+            for code in codecnts:
+                total_errorcnts += codecnts[code]
+                if code in total_errorcodes: continue
+                total_errorcodes.append(code)
+        res['total_errorcodes'] = total_errorcodes
+        res['total_errorcnts'] = total_errorcnts
+
+        return res
+
+
     def flagged_sites(self):
         import concurrent.futures
 
@@ -418,16 +538,23 @@ class SiteIssueBuilder(IssueBuilder):
         for site in siteerror_sum:
             if siteerror_sum[site] > self.settings['errorCountInc']:
                 result.append({'site': site, 'errorinc': siteerror_sum[site]})
+
+        for x in result:
+            x.update(self.dress_siteissue(x['site']))
+
         return result
 
 
 if __name__ =="__main__":
 
+    from pprint import pprint
     wib = WorkflowIssueBuilder()
-    # wf='pdmvserv_task_EXO-RunIISummer15wmLHEGS-05648__v1_T_181004_092049_9366'
-    # print(wib.flagged_workflows())
+    # wf='cmsunified_task_BTV-RunIISummer19UL17SIM-00022__v1_T_191118_005043_656'
+    # pprint(wib.dress_workflow(wf))
 
     sib = SiteIssueBuilder()
+    # site = 'T2_US_Caltech'
+    # pprint(sib.dress_siteissue(site))
     # wf='pdmvserv_task_B2G-RunIIFall17wmLHEGS-01648__v1_T_190709_120529_981'
     # print(sib._get_two_reports(wf))
     # print(sib.flagged_sites())
