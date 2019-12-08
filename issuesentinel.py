@@ -93,14 +93,14 @@ def main():
                 jc.add_comment(issues[0].key, comment)
             else:
                 desc = '\n'.join([
-                    '* [unified|https://cms-unified.web.cern.ch/cms-unified//report/{0}]',
-                    '* [OSDroid|{1}/errorreport?name={0}]',
+                    f'* [unified|https://cms-unified.web.cern.ch/cms-unified//report/{workflow}]',
+                    f'* [OSDroid|{host_addr}/errorreport?name={workflow}]',
                 ])
                 desc += '\n\n\n'
                 desc += details
                 jc.create_issue(label='WorkflowIssue',
                                 summary=f'<Workflow> - {workflow} needs attention',
-                                description=desc.format(workflow, host_addr))
+                                description=desc)
 
     with urllib.request.urlopen(url=f'{osdroid_addr}/issues/site', timeout=60*8) as url:
         flagged_sites = json.loads(url.read().decode())
@@ -118,7 +118,7 @@ def main():
                 jc.add_comment(issues[0].key, comment)
             else:
                 desc_ = desc + '\n'
-                dsec_ += '--------------------------------\n'
+                desc_ += '--------------------------------\n'
                 desc_ += details
                 jc.create_issue(label='SiteIssue',
                                 summary='<Site> - {} needs attention'.format(site),

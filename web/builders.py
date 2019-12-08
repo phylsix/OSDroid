@@ -442,13 +442,13 @@ class SiteIssueBuilder(IssueBuilder):
         sql = "SELECT MAX(timestamp) FROM DocsOneMonthArchive"
         ts0 = db.query(sql)[0][0]
         ts1 = ts0 - timedelta(hours=timespan)
-        sql = "SELECT timestamp FROM DocsOneMonthArchive WHERE name=%s"
+        sql = "SELECT timestamp FROM DocsOneMonthArchive WHERE name=%s ORDER BY timestamp DESC" # desc order..
         timestamps = db.query(sql, (workflow,))
         ts1diffarrays = [(x[0]-ts1).total_seconds() for x in timestamps]
         idx = np.abs(np.array(ts1diffarrays)).argmin()
 
         totalreports = self._get_workflow_reports(workflow)
-        return json.loads(totalreports[-1]), json.loads(totalreports[idx])
+        return json.loads(totalreports[0]), json.loads(totalreports[idx])
 
     @staticmethod
     def siteerror_from_report(report):
@@ -540,7 +540,7 @@ class SiteIssueBuilder(IssueBuilder):
                 result.append({'site': site, 'errorinc': siteerror_sum[site]})
 
         for x in result:
-            x.update(self.dress_siteissue(x['site']))
+            x = x.update(self.dress_siteissue(x['site']))
 
         return result
 
