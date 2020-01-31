@@ -58,7 +58,16 @@ class JiraClient:
     def add_comment(self, issuekey, comment):
         return self.client.add_comment(issuekey, comment)
 
+    def get_comments(self, issuekey):
+        return self.client.issue(issuekey).fields.comment.comments
 
+
+def jira_comments_to_json(comment):
+    raw = ''.join(comment.body.split('\n')[2:])
+    return json.loads(raw)
+
+def json_partial_equal(j0, j1, keys):
+    return all([j0.get(k, None)==j1.get(k, None) for k in keys])
 
 def send_email(subject, msg, recipients):
     sender = 'toolsandint-workflowmonitalert@cern.ch'
@@ -87,10 +96,14 @@ def main():
             details = json.dumps(workflowinfo, indent=4)
             issues = jc.search_issue(label='WorkflowIssue', identifier=workflow)
             if issues:
+                if json_partial_equal(jira_comments_to_json(jc.get_comments(issues[0].key)[-1]),
+                                      workflowinfo, ['errorcnt_percode', 'total_error']): continue
+
                 comment = f'<sentinel> detected on {time_str}\n'
                 comment += '---------------------------------\n'
                 comment += details
                 jc.add_comment(issues[0].key, comment)
+
             else:
                 desc = '\n'.join([
                     f'* [unified|https://cms-unified.web.cern.ch/cms-unified//report/{workflow}]',
