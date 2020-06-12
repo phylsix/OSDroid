@@ -151,7 +151,7 @@ def updateWorkflowStatusToDb(configPath, wcErrorInfos):
 
 # -----------------------------------------------------------------------------
 
-def prepareWorkflows(configpath, minfailurerate=0., test=False, batchsize=300):
+def prepareWorkflows(configpath, minfailurerate=0., test=False, batchsize=15):
     """
     extract workflows from unified db, filter out those need to query,
     stratified with batchsize.
@@ -159,7 +159,7 @@ def prepareWorkflows(configpath, minfailurerate=0., test=False, batchsize=300):
     :param str configpath: path to config file
     :param float minfailurerate: input to pack for jobs
     :param bool test: for debug
-    "param int batchsize: number of workflows per batch
+    :param int batchsize: number of workflows per batch
     :returns: list of list of (:py:class:`Workflow`, `minfailurerate`, `configpath`),
      grouped per `batchsize`.
     :rtype: list

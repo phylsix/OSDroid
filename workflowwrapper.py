@@ -2,7 +2,8 @@
 """simple wrapper around workflow, only has functions needed for monitoring
 """
 
-from cmstoolbox.webtools import get_json
+from cmstoolbox import webtools
+webtools.USER_AGENT = 'OSDroid'
 
 
 class PrepID:
@@ -10,7 +11,7 @@ class PrepID:
         self.name_ = prepid
         self.url_ = url
 
-        result = get_json(self.url_, '/reqmgr2/data/request',
+        result = webtools.get_json(self.url_, '/reqmgr2/data/request',
                           params={'prep_id': self.name_, 'detail': 'true'},
                           use_cert=True)
         result = result.get('result', [])
@@ -62,7 +63,7 @@ class Workflow:
         :rtype: dict
         """
         if not self.jobdetail_:
-            self.jobdetail_ = get_json(
+            self.jobdetail_ = webtools.get_json(
                 self.url_,
                 f"/wmstatsserver/data/jobdetail/{self.name_}",
                 use_cert=True)
@@ -76,7 +77,7 @@ class Workflow:
         """
         if not self.reqdetail_:
             reqDetail = {self.name_: dict()}
-            raw = get_json(
+            raw = webtools.get_json(
                 self.url_,
                 f'/wmstatsserver/data/request/{self.name_}',
                 use_cert=True)
@@ -97,7 +98,7 @@ class Workflow:
         :rtype: dict
         """
         if not self.reqparams_:
-            result = get_json(
+            result = webtools.get_json(
                 self.url_,
                 '/reqmgr2/data/request',
                 params={'name': self.name_},
@@ -167,7 +168,7 @@ class Workflow:
                     if sites: errors[code] = sites
                 if errors: output[step] = errors
 
-        acdc_server_response = get_json(
+        acdc_server_response = webtools.get_json(
             self.url_,
             '/couchdb/acdcserver/_design/ACDC/_view/byCollectionName', {
                 'key': f'"{self.name_}"',
